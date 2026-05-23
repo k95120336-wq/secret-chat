@@ -20,9 +20,9 @@ body{font:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;background:#f5f5f
 .hd{background:#ff6b6b;color:#fff;padding:12px 0;position:sticky;top:0;z-index:100;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:space-between;justify-content:space-between}
 .hd h1{font-size:18px;padding:0 15px}
 .hd .u{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;padding:0 15px}
+.hd .u img{width:32px;height:32px;border-radius:50%;object-fit:cover}
 .hd .logout{font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;padding:4px 8px;border-radius:6px;white-space:nowrap}
 .hd .logout:active{background:rgba(255,255,255,0.2)}
-.hd .u img{width:32px;height:32px;border-radius:50%;object-fit:cover}
 .np{background:#fff;border-radius:12px;padding:15px;margin-bottom:15px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
 .np textarea{width:100%;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:14px;resize:vertical;min-height:80px;margin-bottom:10px;outline:none}
 .np textarea:focus{border-color:#ff6b6b}
@@ -74,21 +74,28 @@ body{font:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;background:#f5f5f
 </head>
 <body>
 <div id="pwb" style="display:none"><div class="c"><div class="bx"><h2>常常在线</h2><input class="in" type="password" id="pwi" placeholder="请输入密码" onkeydown="if(event.key==='Enter')chkPw()"><button class="btn" onclick="chkPw()">进入</button><div class="er" id="pwe"></div></div></div></div>
-<div id="lgb" style="display:none"><div class="c"><div class="bx"><h2>设置账号</h2><div class="up"><img id="avP" class="av" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23eee'/%3E%3Ctext x='40' y='45' text-anchor='middle' fill='%23999' font-size='28'%3E+%3C/text%3E%3C/svg%3E" onclick="document.getElementById('avI').click()"><input type="file" accept="image/*" id="avI" onchange="prAv(event)"><div class="hint">点击上传头像</div></div><input class="in" type="text" id="ni" placeholder="输入昵称" onkeydown="if(event.key==='Enter')go()"><input class="smin" type="password" id="tki" placeholder="输入GitHub Token（用于跨设备同步）" onkeydown="if(event.key==='Enter')go()"><div class="tip">Token只有<strong>public_repo</strong>权限，存在你本机，只用于同步帖子数据。可以问我要。</div><button class="btn" id="lgnb">进入</button><div class="er" id="le"></div></div></div></div>
+<div id="lgb" style="display:none"><div class="c"><div class="bx"><h2>设置账号</h2><div class="up"><img id="avP" class="av" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23eee'/%3E%3Ctext x='40' y='45' text-anchor='middle' fill='%23999' font-size='28'%3E+%3C/text%3E%3C/svg%3E" onclick="document.getElementById('avI').click()"><input type="file" accept="image/*" id="avI" onchange="prAv(event)"><div class="hint">点击上传头像</div></div><input class="in" type="text" id="ni" placeholder="输入昵称" onkeydown="if(event.key==='Enter')go()"><input class="smin" type="password" id="tki" placeholder="输入GitHub Token（用于跨设备同步）" onkeydown="if(event.key==='Enter')go()"><div class="tip">Token只有public_repo权限，存在你本机，只用于同步帖子数据。</div><button class="btn" id="lgnb">进入</button><div class="er" id="le"></div></div></div></div>
 <div id="app" style="display:none"><div class="hd"><h1>常常在线</h1><div class="u"><img id="ua"><span id="un"></span><span class="logout" onclick="lo()">退出</span></div></div><div class="c"><div class="np"><textarea id="pt" placeholder="写点什么..."></textarea><div class="ipre" id="pip"></div><div class="ac"><div class="il"><label for="ii">图片(最多5张)</label><input type="file" accept="image/*" multiple id="ii" onchange="hUp(event)"></div><button onclick="sP()">发布</button></div><div class="er" id="pe"></div></div><div id="pc"></div></div></div>
 <script>
 var PW="199796",SK="ccd",cu=null,ui=[];
 var GH_REPO="k95120336-wq/secret-chat";
 var GH_BRANCH="main";
 
+// === localStorage helpers ===
 function gd(){var r=localStorage.getItem(SK);return r?JSON.parse(r):{posts:[],nextId:1}}
 function sd(d){localStorage.setItem(SK,JSON.stringify(d));try{new BroadcastChannel("cc").postMessage({t:"u"})}catch(e){}}
 function es(s){if(!s)return "";return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function fu(f){return new Promise(function(r){var x=new FileReader();x.onload=function(e){r(e.target.result)};x.readAsDataURL(f)})}
 function prAv(e){if(e.target.files&&e.target.files[0]){var r=new FileReader();r.onload=function(ev){document.getElementById("avP").src=ev.target.result};r.readAsDataURL(e.target.files[0])}}
-
 function gt(){var t=localStorage.getItem("cc_token");return t||null}
 
+// === UTF-8 safe base64 helpers ===
+function utf8ToBytes(s){var b=[],i;for(i=0;i<s.length;i++){var c=s.charCodeAt(i);if(c<128)b.push(c);else if(c<2048)b.push(192|c>>6,128|c&63);else b.push(224|c>>12,128|c>>6&63,128|c&63)}return b}
+function bytesToUtf8(b){var s='',i=0;while(i<b.length){var x=b[i++];if(x<128)s+=String.fromCharCode(x);else if(x<224)s+=String.fromCharCode((x&31)<<6|b[i++]&63);else s+=String.fromCharCode((x&15)<<12|(b[i++]&63)<<6|b[i++]&63)}return s}
+function toBase64(s){var u=utf8ToBytes(s);return btoa(String.fromCharCode.apply(null,u))}
+function fromBase64(s){var u=atob(s).split('').map(function(c){return c.charCodeAt(0)});return bytesToUtf8(u)}
+
+// === GitHub Sync ===
 function ghApi(method, data){
   var token=gt();if(!token)return null;
   var url="https://api.github.com/repos/"+GH_REPO+"/contents/forum_data.json";
@@ -99,22 +106,14 @@ function ghApi(method, data){
   if(data){xhr.setRequestHeader("Content-Type","application/json");xhr.send(JSON.stringify(data))}
   else{xhr.send()}
   if(xhr.status>=200&&xhr.status<300)return JSON.parse(xhr.responseText);
-  return {error:true,status:xhr.status,text:xhr.responseText};
+  return null;
 }
 
 function syncDown(){
   var r=ghApi("GET");
   if(r&&r.content){
     try{
-      // Proper UTF-8 base64 decode
-      var bytes=atob(r.content.replace(/\n/g,"")).split('').map(function(c){return c.charCodeAt(0)});
-      var dec='',i=0;
-      while(i<bytes.length){
-        var b=bytes[i++];
-        if(b<128)dec+=String.fromCharCode(b);
-        else if(b<224)dec+=String.fromCharCode((b&31)<<6|bytes[i++]&63);
-        else dec+=String.fromCharCode((b&15)<<12|(bytes[i++]&63)<<6|bytes[i++]&63);
-      }
+      var dec=fromBase64(r.content.replace(/\n/g,""));
       var data=JSON.parse(dec);
       var local=gd();
       if(data.posts&&data.posts.length>0){
@@ -127,24 +126,15 @@ function syncDown(){
       }
       var isEmpty=!data.posts||data.posts.length===0;
       return {data:local,sha:r.sha,empty:isEmpty};
-    }catch(e){}
+    }catch(e){console.log("syncDown error:",e)}
   }
-  // File doesn't exist or is empty
   return {data:gd(),sha:null,empty:true};
 }
 
 function syncUp(sha){
   var data=gd();
   var jsonStr=JSON.stringify(data);
-  // UTF-8 safe base64: convert string to UTF-8 bytes first
-  var utf8=[],i;
-  for(i=0;i<jsonStr.length;i++){
-    var c=jsonStr.charCodeAt(i);
-    if(c<128)utf8.push(c);
-    else if(c<2048)utf8.push(192|c>>6,128|c&63);
-    else utf8.push(224|c>>12,128|c>>6&63,128|c&63);
-  }
-  var enc=btoa(String.fromCharCode.apply(null,utf8));
+  var enc=toBase64(jsonStr);
   var body={message:"sync",content:enc,branch:GH_BRANCH};
   if(sha)body.sha=sha;
   ghApi("PUT",body);
@@ -155,28 +145,17 @@ function doSync(){
   var t=gt();
   if(t){
     var data=gd();
-    // If no remote data exists or remote is empty, write local data up
     if(!r.sha||r.empty){
-      var jsonStr=JSON.stringify(data);
-      var utf8=[],i;
-      for(i=0;i<jsonStr.length;i++){
-        var c=jsonStr.charCodeAt(i);
-        if(c<128)utf8.push(c);
-        else if(c<2048)utf8.push(192|c>>6,128|c&63);
-        else utf8.push(224|c>>12,128|c>>6&63,128|c&63);
-      }
-      var enc=btoa(String.fromCharCode.apply(null,utf8));
-      var body={message:"sync",content:enc,branch:GH_BRANCH};
-      if(r.sha)body.sha=r.sha;
-      var res=ghApi("PUT",body);
-      if(res&&res.error)console.log("Sync PUT error:",res.status,res.text);
+      // First time: create file with local data
+      syncUp(null);
     } else {
       syncUp(r.sha);
     }
   }
-  return r.data;
+  return r.data||gd();
 }
 
+// === App flow ===
 function sp(){var p=localStorage.getItem("ccpw");if(p===PW){document.getElementById("pwb").style.display="none";il()}else{document.getElementById("pwb").style.display="block"}}
 function lo(){localStorage.removeItem("ccpw");localStorage.removeItem("ccu");localStorage.removeItem("cc_token");cu=null;document.getElementById("app").style.display="none";document.getElementById("pwb").style.display="block"}
 function chkPw(){if(document.getElementById("pwi").value===PW){localStorage.setItem("ccpw",PW);document.getElementById("pwb").style.display="none";il()}else{document.getElementById("pwe").textContent="密码错误"}}
@@ -195,21 +174,31 @@ document.getElementById("lgnb").onclick=async function(){
   document.getElementById("lgb").style.display="none";
   rA()}
 
+// === Render ===
 function rA(){document.getElementById("lgb").style.display="none";document.getElementById("app").style.display="block";document.getElementById("ua").src=cu.avatar;document.getElementById("un").textContent=cu.nick;lP()}
-function lP(){var d=doSync();var c=document.getElementById("pc");if(!d.posts||!d.posts.length){c.innerHTML='<div class="empty">暂无帖子</div>';return}c.innerHTML="";d.posts.sort(function(a,b){return b.id-a.id}).forEach(function(p){c.appendChild(rP(p))});var t=gt();if(t&&d.posts.length>0)console.log("Synced:",d.posts.length,"posts")}
 
-function rP(p){var d=document.createElement("div");d.className="post";var ia=cu&&cu.nick===p.author&&cu.avatar===p.avatar;var imgs="";if(p.images&&p.images.length)imgs='<div class="pimgs">'+p.images.map(function(s){return '<img src="'+s+'" onclick="oL(\''+s+'\')">'}).join("")+'</div>';var reps="";if(p.replies&&p.replies.length)reps='<div class="rs">'+p.replies.map(function(r){var ri="";if(r.image)ri='<div class="ri"><img src="'+r.image+'" onclick="oL(\''+r.image+'\')"></div>';return '<div class="r"><div class="rh"><img src="'+r.avatar+'"><span class="ra">'+es(r.author)+'</span><span class="rl">'+es(r.time)+'</span></div><div class="rt">'+es(r.text)+'</div>'+ri+'</div>'}).join("")+'</div>';var del=ia?'<span class="db" onclick="dP('+p.id+')">删除</span>':"";d.innerHTML='<div class="ph"><img src="'+p.avatar+'"><div><div class="pa">'+es(p.author)+'</div><div class="pt">'+es(p.time)+'</div></div>'+del+'</div><div class="pc">'+es(p.text)+'</div>'+imgs+'<div class="pacts"><span onclick="sR('+p.id+')">回复</span></div>'+reps+'<div class="rf" id="rf'+p.id+'" style="display:none"><input type="text" placeholder="输入回复..." id="ri'+p.id+'"><input type="file" accept="image/*" id="rfi'+p.id+'" style="display:none"><label for="rfi'+p.id+'" style="padding:6px 10px;background:#eee;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">图片</label><button onclick="sbR('+p.id+')">发送</button></div>';return d}
+function lP(){var d=doSync();var c=document.getElementById("pc");if(!d.posts||!d.posts.length){c.innerHTML='<div class="empty">暂无帖子</div>';return}c.innerHTML="";d.posts.sort(function(a,b){return b.id-a.id}).forEach(function(p){c.appendChild(rP(p))})}
 
+function rP(p){
+  var d=document.createElement("div");d.className="post";
+  var ia=cu&&cu.nick===p.author&&cu.avatar===p.avatar;
+  var imgs="";if(p.images&&p.images.length)imgs='<div class="pimgs">'+p.images.map(function(s){return '<img src="'+s+'" onclick="oL(\''+s+'\')">'}).join("")+'</div>';
+  var reps="";if(p.replies&&p.replies.length)reps='<div class="rs">'+p.replies.map(function(r){var ri="";if(r.image)ri='<div class="ri"><img src="'+r.image+'" onclick="oL(\''+r.image+'\')"></div>';return '<div class="r"><div class="rh"><img src="'+r.avatar+'"><span class="ra">'+es(r.author)+'</span><span class="rl">'+es(r.time)+'</span></div><div class="rt">'+es(r.text)+'</div>'+ri+'</div>'}).join("")+'</div>';
+  var del=ia?'<span class="db" onclick="dP('+p.id+')">删除</span>':"";
+  d.innerHTML='<div class="ph"><img src="'+p.avatar+'"><div><div class="pa">'+es(p.author)+'</div><div class="pt">'+es(p.time)+'</div></div>'+del+'</div><div class="pc">'+es(p.text)+'</div>'+imgs+'<div class="pacts"><span onclick="sR('+p.id+')">回复</span></div>'+reps+'<div class="rf" id="rf'+p.id+'" style="display:none"><input type="text" placeholder="输入回复..." id="ri'+p.id+'"><input type="file" accept="image/*" id="rfi'+p.id+'" style="display:none"><label for="rfi'+p.id+'" style="padding:6px 10px;background:#eee;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">图片</label><button onclick="sbR('+p.id+')">发送</button></div>';
+  return d
+}
+
+// === Actions ===
 function sP(){var t=document.getElementById("pt").value.trim();if(!t){document.getElementById("pe").textContent="请输入内容";return}var imgs=ui.slice(0,5);var d=gd();d.posts.push({id:d.nextId++,author:cu.nick,avatar:cu.avatar,time:new Date().toLocaleString("zh-CN",{hour12:false}),text:t,images:imgs,replies:[]});sd(d);doSync();document.getElementById("pt").value="";ui=[];document.getElementById("pip").innerHTML="";lP()}
-
 function sR(id){var f=document.getElementById("rf"+id);if(f)f.style.display=f.style.display==="none"?"flex":"none"}
 async function sbR(pid){var i=document.getElementById("ri"+pid),fi=document.getElementById("rfi"+pid),t=i.value.trim();if(!t)return;var img=null;if(fi.files&&fi.files[0])img=await fu(fi.files[0]);var d=gd(),p=d.posts.find(function(x){return x.id===pid});if(p){if(!p.replies)p.replies=[];p.replies.push({author:cu.nick,avatar:cu.avatar,time:new Date().toLocaleString("zh-CN",{hour12:false}),text:t,image:img});sd(d)}i.value="";fi.value="";doSync();lP()}
 function dP(id){if(!confirm("确定删除？"))return;var d=gd();d.posts=d.posts.filter(function(p){return p.id!==id});sd(d);doSync();lP()}
-
 function hUp(e){var fs=e.target.files,p=document.getElementById("pip");for(var k=0;k<fs.length;k++){if(ui.length>=5)break;(function(idx){var r=new FileReader();r.onload=function(ev){ui.push(ev.target.result);var w=document.createElement("div");w.className="iw";w.innerHTML='<img src="'+ev.target.result+'"><span class="rm" onclick="rI('+idx+')">x</span>';p.appendChild(w)};r.readAsDataURL(fs[k])})(ui.length)}e.target.value=""}
 function rI(idx){ui.splice(idx,1);document.getElementById("pip").innerHTML="";ui.forEach(function(s,i){var w=document.createElement("div");w.className="iw";w.innerHTML='<img src="'+s+'"><span class="rm" onclick="rI('+i+')">x</span>';document.getElementById("pip").appendChild(w)})}
 function oL(src){var l=document.createElement("div");l.className="lb";l.onclick=function(){l.remove()};l.innerHTML='<img src="'+src+'">';document.body.appendChild(l)}
 
+// === Init ===
 try{new BroadcastChannel("cc").onmessage=function(e){if(e.data&&e.data.t==="u"&&cu)lP()}}catch(e){}
 var su=localStorage.getItem("ccu");if(su){var u2=JSON.parse(su),ni=document.getElementById("ni");if(ni)ni.value=u2.nick}
 var st=localStorage.getItem("cc_token");if(st){var tki=document.getElementById("tki");if(tki)tki.value=st}
