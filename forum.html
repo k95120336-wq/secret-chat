@@ -2,318 +2,97 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>常常在线</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;background:#f5f5f5;color:#333;min-height:100vh}
-.container{max-width:700px;margin:0 auto;padding:15px}
-.login-box,.password-box{background:#fff;border-radius:12px;padding:30px 20px;margin-top:60px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
-.password-box h2,.login-box h2{text-align:center;margin-bottom:20px;color:#ff6b6b}
-.password-box input,.login-box input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:16px;margin-bottom:15px;outline:none}
-.password-box input:focus,.login-box input:focus{border-color:#ff6b6b}
-.password-box button,.login-box button{width:100%;padding:12px;background:#ff6b6b;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer}
-.password-box button:hover{background:#ee5a5a}
-header{background:#ff6b6b;color:#fff;padding:12px 0;position:sticky;top:0;z-index:100}
-.header-inner{display:flex;align-items:center;justify-content:space-between;max-width:700px;margin:0 auto;padding:0 15px}
-.header-inner h1{font-size:18px}
-.user-info{display:flex;align-items:center;gap:10px}
-.user-info img{width:32px;height:32px;border-radius:50%;object-fit:cover}
-.new-post{background:#fff;border-radius:12px;padding:15px;margin-bottom:15px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
-.new-post textarea{width:100%;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:14px;resize:vertical;min-height:80px;margin-bottom:10px;outline:none}
-.new-post textarea:focus{border-color:#ff6b6b}
-.new-post .actions{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
-.new-post .actions button{padding:8px 20px;background:#ff6b6b;color:#fff;border:none;border-radius:8px;cursor:pointer}
-.new-post .actions button:hover{background:#ee5a5a}
-.image-upload{display:flex;align-items:center;gap:8px}
-.image-upload label{padding:6px 12px;background:#eee;border-radius:6px;cursor:pointer;font-size:13px}
-.image-upload input{display:none}
-.image-previews{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.image-previews img{width:80px;height:80px;object-fit:cover;border-radius:6px}
-.image-previews .img-wrapper{position:relative;display:inline-block}
-.image-previews .img-wrapper .remove{position:absolute;top:-4px;right:-4px;background:rgba(0,0,0,0.6);color:#fff;border-radius:50%;width:18px;height:18px;font-size:12px;line-height:18px;text-align:center;cursor:pointer}
+body{font:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;background:#f5f5f5;color:#333;min-height:100vh}
+.c{max-width:700px;margin:0 auto;padding:15px}
+.bx{background:#fff;border-radius:12px;padding:30px 20px;margin-top:60px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.bx h2{text-align:center;margin-bottom:20px;color:#ff6b6b}
+.in{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:16px;margin-bottom:15px;outline:none}
+.in:focus{border-color:#ff6b6b}
+.btn{width:100%;padding:12px;background:#ff6b6b;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer;-webkit-appearance:none}
+.btn:active{background:#ee5a5a}
+.hd{background:#ff6b6b;color:#fff;padding:12px 0;position:sticky;top:0;z-index:100;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:space-between;justify-content:space-between;max-width:700px;margin:0 auto}
+.hd h1{font-size:18px;padding:0 15px}
+.hd .u{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;padding:0 15px}
+.hd .u img{width:32px;height:32px;border-radius:50%;object-fit:cover}
+.np{background:#fff;border-radius:12px;padding:15px;margin-bottom:15px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.np textarea{width:100%;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:14px;resize:vertical;min-height:80px;margin-bottom:10px;outline:none}
+.np textarea:focus{border-color:#ff6b6b}
+.np .ac{display:-webkit-flex;display:flex;-webkit-justify-content:space-between;justify-content:space-between;-webkit-align-items:center;align-items:center;gap:8px}
+.np .ac button{padding:8px 20px;background:#ff6b6b;color:#fff;border:none;border-radius:8px;cursor:pointer;-webkit-appearance:none}
 .post{background:#fff;border-radius:12px;padding:15px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
-.post-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.post-header img{width:36px;height:36px;border-radius:50%;object-fit:cover}
-.post-author{font-weight:600;font-size:14px}
-.post-time{color:#999;font-size:12px}
-.post-text{font-size:14px;line-height:1.6;margin-bottom:8px;word-break:break-word;white-space:pre-wrap}
-.post-images{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-.post-images img{max-width:100%;max-height:300px;border-radius:8px;cursor:pointer}
-.post-actions{display:flex;gap:12px;font-size:13px;color:#999;margin-bottom:8px}
-.post-actions span{cursor:pointer}
-.post-actions span:hover{color:#ff6b6b}
-.reply-section{padding-left:20px;border-left:2px solid #eee}
-.reply{padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
-.reply:last-child{border-bottom:none}
-.reply .reply-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
-.reply .reply-header img{width:28px;height:28px;border-radius:50%;object-fit:cover}
-.reply-author{font-weight:600}
-.reply-time{color:#999;font-size:11px;margin-left:4px}
-.reply-text{line-height:1.5;word-break:break-word;white-space:pre-wrap}
-.reply-image img{max-width:200px;max-height:200px;border-radius:6px;margin-top:4px;cursor:pointer}
-.reply-form{display:flex;gap:8px;align-items:flex-start;margin-top:8px}
-.reply-form input[type=text]{flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none}
-.reply-form input[type=text]:focus{border-color:#ff6b6b}
-.reply-form button{padding:8px 14px;background:#ff6b6b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap}
-.reply-form button:hover{background:#ee5a5a}
-.delete-btn{color:#ff4444;font-size:12px;cursor:pointer;margin-left:auto}
-.delete-btn:hover{text-decoration:underline}
+.ph{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;margin-bottom:8px}
+.ph img{width:36px;height:36px;border-radius:50%;object-fit:cover}
+.pa{font-weight:600;font-size:14px}
+.pt{color:#999;font-size:12px}
+.pc{font-size:14px;line-height:1.6;margin-bottom:8px;word-break:break-word;white-space:pre-wrap}
+.pimgs{display:-webkit-flex;display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.pimgs img{max-width:100%;max-height:300px;border-radius:8px;cursor:pointer}
+.pacts{display:-webkit-flex;display:flex;gap:12px;font-size:13px;color:#999;margin-bottom:8px}
+.pacts span{cursor:pointer}
+.pacts span:active{color:#ff6b6b}
+.rs{padding-left:20px;border-left:2px solid #eee}
+.r{padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.r:last-child{border-bottom:none}
+.rh{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:8px;margin-bottom:4px}
+.rh img{width:28px;height:28px;border-radius:50%;object-fit:cover}
+.ra{font-weight:600}
+.rl{color:#999;font-size:11px;margin-left:4px}
+.rt{line-height:1.5;word-break:break-word;white-space:pre-wrap}
+.ri img{max-width:200px;max-height:200px;border-radius:6px;margin-top:4px;cursor:pointer}
+.rf{display:-webkit-flex;display:flex;gap:8px;-webkit-align-items:flex-start;align-items:flex-start;margin-top:8px}
+.rf input{-webkit-flex:1;flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none}
+.rf input:focus{border-color:#ff6b6b}
+.rf button{padding:8px 14px;background:#ff6b6b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap;-webkit-appearance:none}
+.db{color:#ff4444;font-size:12px;cursor:pointer;margin-left:auto}
 .empty{text-align:center;color:#999;padding:40px;font-size:14px}
-.lightbox{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:1000;cursor:pointer}
-.lightbox img{max-width:90%;max-height:90%;border-radius:8px}
-.error{color:#ff4444;font-size:13px;text-align:center;margin-top:8px;min-height:20px}
-input,button,textarea{font-family:inherit}
-.login-avatar-area{text-align:center;margin-bottom:15px}
-.login-avatar-area .preview{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px dashed #ddd;margin-bottom:10px;cursor:pointer}
-.login-avatar-area .preview.has{background:#fff}
-.login-avatar-area .hint{font-size:13px;color:#999;margin-top:6px}
-.login-avatar-area input{display:none}
+.lb{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;z-index:1000;cursor:pointer}
+.lb img{max-width:90%;max-height:90%;border-radius:8px}
+.er{color:#ff4444;font-size:13px;text-align:center;margin-top:8px;min-height:20px}
+.up{text-align:center;margin-bottom:15px}
+.up .av{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px dashed #ddd;margin-bottom:10px;cursor:pointer}
+.up .hint{font-size:13px;color:#999}
+.up input{display:none}
+.il{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:8px}
+.il label{padding:6px 12px;background:#eee;border-radius:6px;cursor:pointer;font-size:13px}
+.il input{display:none}
+.ipre{display:-webkit-flex;display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.ipre img{width:80px;height:80px;object-fit:cover;border-radius:6px}
+.ipre .iw{position:relative;display:inline-block}
+.ipre .iw .rm{position:absolute;top:-4px;right:-4px;background:rgba(0,0,0,0.6);color:#fff;border-radius:50%;width:18px;height:18px;font-size:12px;line-height:18px;text-align:center;cursor:pointer}
 </style>
 </head>
 <body>
-<div id="pw" class="container" style="display:none">
-<div class="password-box"><h2>常常在线</h2>
-<input type="password" id="pwi" placeholder="请输入密码" onkeydown="if(event.key==='Enter')checkPass()">
-<button onclick="checkPass()">进入</button>
-<div class="error" id="pwe"></div></div></div>
-<div id="lb" class="container" style="display:none">
-<div class="login-box"><h2>设置账号</h2>
-<div class="login-avatar-area">
-<img id="avatarPreview" class="preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23eee'/%3E%3Ctext x='40' y='45' text-anchor='middle' fill='%23999' font-size='28'%3E%2B%3C/text%3E%3C/svg%3E" onclick="document.getElementById('avatarInput').click()">
-<input type="file" accept="image/*" id="avatarInput" onchange="previewAvatar(event)">
-<div class="hint">点击上传头像</div>
-</div>
-<input type="text" id="ni" placeholder="输入昵称" onkeydown="if(event.key==='Enter')document.getElementById('lgn').click()">
-<button id="lgn">进入</button>
-<div class="error" id="le"></div></div></div>
-<div id="app" style="display:none">
-<header><div class="header-inner"><h1>常常在线</h1>
-<div class="user-info"><img id="ua"><span id="un"></span></div></div></header>
-<div class="container">
-<div class="new-post">
-<textarea id="pt" placeholder="写点什么..."></textarea>
-<div class="image-previews" id="pip"></div>
-<div class="actions">
-<div class="image-upload"><label for="ii">图片(最多5张)</label>
-<input type="file" accept="image/*" multiple id="ii" onchange="handleUpload(event)"></div>
-<button onclick="submitPost()">发布</button></div>
-<div class="error" id="pe"></div></div>
-<div id="pc"></div></div></div>
+<div id="pwb" style="display:none"><div class="c"><div class="bx"><h2>常常在线</h2><input class="in" type="password" id="pwi" placeholder="请输入密码" onkeydown="if(event.key==='Enter')chkPw()"><button class="btn" onclick="chkPw()">进入</button><div class="er" id="pwe"></div></div></div></div>
+<div id="lgb" style="display:none"><div class="c"><div class="bx"><h2>设置账号</h2><div class="up"><img id="avP" class="av" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23eee'/%3E%3Ctext x='40' y='45' text-anchor='middle' fill='%23999' font-size='28'%3E+%3C/text%3E%3C/svg%3E" onclick="document.getElementById('avI').click()"><input type="file" accept="image/*" id="avI" onchange="prAv(event)"><div class="hint">点击上传头像</div></div><input class="in" type="text" id="ni" placeholder="输入昵称" onkeydown="if(event.key==='Enter')go()"><button class="btn" id="lgnb">进入</button><div class="er" id="le"></div></div></div></div>
+<div id="app" style="display:none"><div class="hd"><h1>常常在线</h1><div class="u"><img id="ua"><span id="un"></span></div></div><div class="c"><div class="np"><textarea id="pt" placeholder="写点什么..."></textarea><div class="ipre" id="pip"></div><div class="ac"><div class="il"><label for="ii">图片(最多5张)</label><input type="file" accept="image/*" multiple id="ii" onchange="hUp(event)"></div><button onclick="sP()">发布</button></div><div class="er" id="pe"></div></div><div id="pc"></div></div></div>
 <script>
-var PASSWORD_HASH = "199796";
-var STORAGE_KEY = "cc_data";
-var currentUser = null;
-var uploadImages = [];
-
-function getData() {
-  var r = localStorage.getItem(STORAGE_KEY);
-  return r ? JSON.parse(r) : { posts: [], nextId: 1 };
-}
-function saveData(d) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-  if (window.BroadcastChannel) {
-    new BroadcastChannel("cc").postMessage({ type: "u" });
-  }
-}
-function escHtml(s) {
-  if (!s) return "";
-  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-function fUrl(f) {
-  return new Promise(function(r) {
-    var x = new FileReader();
-    x.onload = function(e) { r(e.target.result); };
-    x.readAsDataURL(f);
-  });
-}
-
-function previewAvatar(e) {
-  if (e.target.files && e.target.files[0]) {
-    var r = new FileReader();
-    r.onload = function(ev) {
-      document.getElementById("avatarPreview").src = ev.target.result;
-      document.getElementById("avatarPreview").classList.add("has");
-    };
-    r.readAsDataURL(e.target.files[0]);
-  }
-}
-
-function showPage() {
-  var p = localStorage.getItem("cc_pw");
-  if (p === PASSWORD_HASH) {
-    document.getElementById("pw").style.display = "none";
-    initLogin();
-  } else {
-    document.getElementById("pw").style.display = "block";
-  }
-}
-function checkPass() {
-  var i = document.getElementById("pwi").value;
-  if (i === PASSWORD_HASH) {
-    localStorage.setItem("cc_pw", PASSWORD_HASH);
-    document.getElementById("pw").style.display = "none";
-    initLogin();
-  } else {
-    document.getElementById("pwe").textContent = "密码错误";
-  }
-}
-function initLogin() {
-  var s = localStorage.getItem("cc_user");
-  if (s) {
-    currentUser = JSON.parse(s);
-    renderApp();
-  } else {
-    document.getElementById("lb").style.display = "block";
-  }
-}
-document.getElementById("lgn").onclick = async function() {
-  var n = document.getElementById("ni").value.trim();
-  if (!n) { document.getElementById("le").textContent = "请输入昵称"; return; }
-  var fi = document.getElementById("avatarInput");
-  var av = localStorage.getItem("cc_default_avatar");
-  if (fi.files && fi.files[0]) {
-    av = await fUrl(fi.files[0]);
-    localStorage.setItem("cc_default_avatar", av);
-  }
-  if (!av) { document.getElementById("le").textContent = "请上传头像"; return; }
-  currentUser = { nick: n, avatar: av };
-  localStorage.setItem("cc_user", JSON.stringify(currentUser));
-  document.getElementById("lb").style.display = "none";
-  renderApp();
-};
-function renderApp() {
-  document.getElementById("lb").style.display = "none";
-  document.getElementById("app").style.display = "block";
-  document.getElementById("ua").src = currentUser.avatar;
-  document.getElementById("un").textContent = currentUser.nick;
-  loadPosts();
-}
-function loadPosts() {
-  var d = getData();
-  var c = document.getElementById("pc");
-  if (!d.posts || d.posts.length === 0) {
-    c.innerHTML = '<div class="empty">暂无帖子</div>';
-    return;
-  }
-  c.innerHTML = "";
-  d.posts.sort(function(a, b) { return b.id - a.id; }).forEach(function(p) {
-    c.appendChild(renderPost(p));
-  });
-}
-function renderPost(p) {
-  var d = document.createElement("div");
-  d.className = "post";
-  var isAuth = currentUser && currentUser.nick === p.author && currentUser.avatar === p.avatar;
-  var imgs = "";
-  if (p.images && p.images.length > 0) {
-    imgs = '<div class="post-images">' + p.images.map(function(s) {
-      return '<img src="' + s + '" onclick="openLB(\'' + s + '\')">';
-    }).join("") + '</div>';
-  }
-  var reps = "";
-  if (p.replies && p.replies.length > 0) {
-    reps = '<div class="reply-section">' + p.replies.map(function(r) {
-      var ri = "";
-      if (r.image) ri = '<div class="reply-image"><img src="' + r.image + '" onclick="openLB(\'' + r.image + '\')"></div>';
-      return '<div class="reply"><div class="reply-header"><img src="' + r.avatar + '"><span class="reply-author">' + escHtml(r.author) + '</span><span class="reply-time">' + escHtml(r.time) + '</span></div><div class="reply-text">' + escHtml(r.text) + '</div>' + ri + '</div>';
-    }).join("") + '</div>';
-  }
-  var del = isAuth ? '<span class="delete-btn" onclick="delPost(' + p.id + ')">删除</span>' : "";
-  d.innerHTML = '<div class="post-header"><img src="' + p.avatar + '"><div><div class="post-author">' + escHtml(p.author) + '</div><div class="post-time">' + escHtml(p.time) + '</div></div>' + del + '</div><div class="post-text">' + escHtml(p.text) + '</div>' + imgs + '<div class="post-actions"><span onclick="showReply(' + p.id + ')">回复</span></div>' + reps + '<div class="reply-form" id="rf' + p.id + '" style="display:none"><input type="text" placeholder="输入回复..." id="ri' + p.id + '"><input type="file" accept="image/*" id="rfi' + p.id + '" style="display:none"><label for="rfi' + p.id + '" style="padding:6px 10px;background:#eee;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">图片</label><button onclick="submitReply(' + p.id + ')">发送</button></div>';
-  return d;
-}
-function submitPost() {
-  var t = document.getElementById("pt").value.trim();
-  if (!t) { document.getElementById("pe").textContent = "请输入内容"; return; }
-  var imgs = uploadImages.slice(0, 5);
-  var d = getData();
-  d.posts.push({ id: d.nextId++, author: currentUser.nick, avatar: currentUser.avatar, time: new Date().toLocaleString("zh-CN", { hour12: false }), text: t, images: imgs, replies: [] });
-  saveData(d);
-  document.getElementById("pt").value = "";
-  uploadImages = [];
-  document.getElementById("pip").innerHTML = "";
-  loadPosts();
-}
-function showReply(id) {
-  var f = document.getElementById("rf" + id);
-  if (f) f.style.display = f.style.display === "none" ? "flex" : "none";
-}
-async function submitReply(pid) {
-  var i = document.getElementById("ri" + pid);
-  var fi = document.getElementById("rfi" + pid);
-  var t = i.value.trim();
-  if (!t) return;
-  var img = null;
-  if (fi.files && fi.files[0]) img = await fUrl(fi.files[0]);
-  var d = getData();
-  var p = d.posts.find(function(x) { return x.id === pid; });
-  if (p) {
-    if (!p.replies) p.replies = [];
-    p.replies.push({ author: currentUser.nick, avatar: currentUser.avatar, time: new Date().toLocaleString("zh-CN", { hour12: false }), text: t, image: img });
-    saveData(d);
-  }
-  i.value = "";
-  fi.value = "";
-  loadPosts();
-}
-function delPost(id) {
-  if (!confirm("确定删除？")) return;
-  var d = getData();
-  d.posts = d.posts.filter(function(p) { return p.id !== id; });
-  saveData(d);
-  loadPosts();
-}
-function handleUpload(e) {
-  var files = e.target.files;
-  var p = document.getElementById("pip");
-  for (var k = 0; k < files.length; k++) {
-    if (uploadImages.length >= 5) break;
-    var r = new FileReader();
-    (function(idx) {
-      r.onload = function(ev) {
-        uploadImages.push(ev.target.result);
-        var w = document.createElement("div");
-        w.className = "img-wrapper";
-        w.innerHTML = '<img src="' + ev.target.result + '"><span class="remove" onclick="removeImg(' + idx + ')">x</span>';
-        p.appendChild(w);
-      };
-    })(uploadImages.length);
-    r.readAsDataURL(files[k]);
-  }
-  e.target.value = "";
-}
-function removeImg(idx) {
-  uploadImages.splice(idx, 1);
-  var p = document.getElementById("pip");
-  p.innerHTML = "";
-  uploadImages.forEach(function(s, i) {
-    var w = document.createElement("div");
-    w.className = "img-wrapper";
-    w.innerHTML = '<img src="' + s + '"><span class="remove" onclick="removeImg(' + i + ')">x</span>';
-    p.appendChild(w);
-  });
-}
-function openLB(src) {
-  var l = document.createElement("div");
-  l.className = "lightbox";
-  l.onclick = function() { l.remove(); };
-  l.innerHTML = '<img src="' + src + '">';
-  document.body.appendChild(l);
-}
-if (window.BroadcastChannel) {
-  new BroadcastChannel("cc").onmessage = function(e) {
-    if (e.data && e.data.type === "u" && currentUser) loadPosts();
-  };
-}
-// Pre-fill nickname if saved
-var saved = localStorage.getItem("cc_user");
-if (saved) {
-  var u = JSON.parse(saved);
-  var ni = document.getElementById("ni");
-  if (ni) ni.value = u.nick;
-}
-showPage();
+var PW="199796",SK="ccd",cu=null,ui=[];
+function gd(){var r=localStorage.getItem(SK);return r?JSON.parse(r):{posts:[],nextId:1}}
+function sd(d){localStorage.setItem(SK,JSON.stringify(d));try{new BroadcastChannel("cc").postMessage({t:"u"})}catch(e){}}
+function es(s){if(!s)return "";return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function fu(f){return new Promise(function(r){var x=new FileReader();x.onload=function(e){r(e.target.result)};x.readAsDataURL(f)})}
+function prAv(e){if(e.target.files&&e.target.files[0]){var r=new FileReader();r.onload=function(ev){document.getElementById("avP").src=ev.target.result};r.readAsDataURL(e.target.files[0])}}
+function sp(){var p=localStorage.getItem("ccpw");if(p===PW){document.getElementById("pwb").style.display="none";il()}else{document.getElementById("pwb").style.display="block"}}
+function chkPw(){if(document.getElementById("pwi").value===PW){localStorage.setItem("ccpw",PW);document.getElementById("pwb").style.display="none";il()}else{document.getElementById("pwe").textContent="密码错误"}}
+function il(){var s=localStorage.getItem("ccu");if(s){cu=JSON.parse(s);rA()}else{document.getElementById("lgb").style.display="block"}}
+document.getElementById("lgnb").onclick=async function(){var n=document.getElementById("ni").value.trim();if(!n){document.getElementById("le").textContent="请输入昵称";return}var fi=document.getElementById("avI");if(!fi.files||!fi.files[0]){document.getElementById("le").textContent="请上传头像";return}var av=await fu(fi.files[0]);cu={nick:n,avatar:av};localStorage.setItem("ccu",JSON.stringify(cu));document.getElementById("lgb").style.display="none";rA()};
+function rA(){document.getElementById("lgb").style.display="none";document.getElementById("app").style.display="block";document.getElementById("ua").src=cu.avatar;document.getElementById("un").textContent=cu.nick;lP()}
+function lP(){var d=gd(),c=document.getElementById("pc");if(!d.posts||!d.posts.length){c.innerHTML='<div class="empty">暂无帖子</div>';return}c.innerHTML="";d.posts.sort(function(a,b){return b.id-a.id}).forEach(function(p){c.appendChild(rP(p))})}
+function rP(p){var d=document.createElement("div");d.className="post";var ia=cu&&cu.nick===p.author&&cu.avatar===p.avatar;var imgs="";if(p.images&&p.images.length)imgs='<div class="pimgs">'+p.images.map(function(s){return '<img src="'+s+'" onclick="oL(\''+s+'\')">'}).join("")+'</div>';var reps="";if(p.replies&&p.replies.length)reps='<div class="rs">'+p.replies.map(function(r){var ri="";if(r.image)ri='<div class="ri"><img src="'+r.image+'" onclick="oL(\''+r.image+'\')"></div>';return '<div class="r"><div class="rh"><img src="'+r.avatar+'"><span class="ra">'+es(r.author)+'</span><span class="rl">'+es(r.time)+'</span></div><div class="rt">'+es(r.text)+'</div>'+ri+'</div>'}).join("")+'</div>';var del=ia?'<span class="db" onclick="dP('+p.id+')">删除</span>':"";d.innerHTML='<div class="ph"><img src="'+p.avatar+'"><div><div class="pa">'+es(p.author)+'</div><div class="pt">'+es(p.time)+'</div></div>'+del+'</div><div class="pc">'+es(p.text)+'</div>'+imgs+'<div class="pacts"><span onclick="sR('+p.id+')">回复</span></div>'+reps+'<div class="rf" id="rf'+p.id+'" style="display:none"><input type="text" placeholder="输入回复..." id="ri'+p.id+'"><input type="file" accept="image/*" id="rfi'+p.id+'" style="display:none"><label for="rfi'+p.id+'" style="padding:6px 10px;background:#eee;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">图片</label><button onclick="sbR('+p.id+')">发送</button></div>';return d}
+function sP(){var t=document.getElementById("pt").value.trim();if(!t){document.getElementById("pe").textContent="请输入内容";return}var imgs=ui.slice(0,5);var d=gd();d.posts.push({id:d.nextId++,author:cu.nick,avatar:cu.avatar,time:new Date().toLocaleString("zh-CN",{hour12:false}),text:t,images:imgs,replies:[]});sd(d);document.getElementById("pt").value="";ui=[];document.getElementById("pip").innerHTML="";lP()}
+function sR(id){var f=document.getElementById("rf"+id);if(f)f.style.display=f.style.display==="none"?"flex":"none"}
+async function sbR(pid){var i=document.getElementById("ri"+pid),fi=document.getElementById("rfi"+pid),t=i.value.trim();if(!t)return;var img=null;if(fi.files&&fi.files[0])img=await fu(fi.files[0]);var d=gd(),p=d.posts.find(function(x){return x.id===pid});if(p){if(!p.replies)p.replies=[];p.replies.push({author:cu.nick,avatar:cu.avatar,time:new Date().toLocaleString("zh-CN",{hour12:false}),text:t,image:img});sd(d)}i.value="";fi.value="";lP()}
+function dP(id){if(!confirm("确定删除？"))return;var d=gd();d.posts=d.posts.filter(function(p){return p.id!==id});sd(d);lP()}
+function hUp(e){var fs=e.target.files,p=document.getElementById("pip");for(var k=0;k<fs.length;k++){if(ui.length>=5)break;(function(idx){var r=new FileReader();r.onload=function(ev){ui.push(ev.target.result);var w=document.createElement("div");w.className="iw";w.innerHTML='<img src="'+ev.target.result+'"><span class="rm" onclick="rI('+idx+')">x</span>';p.appendChild(w)};r.readAsDataURL(fs[k])})(ui.length)}e.target.value=""}
+function rI(idx){ui.splice(idx,1);document.getElementById("pip").innerHTML="";ui.forEach(function(s,i){var w=document.createElement("div");w.className="iw";w.innerHTML='<img src="'+s+'"><span class="rm" onclick="rI('+i+')">x</span>';document.getElementById("pip").appendChild(w)})}
+function oL(src){var l=document.createElement("div");l.className="lb";l.onclick=function(){l.remove()};l.innerHTML='<img src="'+src+'">';document.body.appendChild(l)}
+try{new BroadcastChannel("cc").onmessage=function(e){if(e.data&&e.data.t==="u"&&cu)lP()}}catch(e){}
+var su=localStorage.getItem("ccu");if(su){var u2=JSON.parse(su),ni=document.getElementById("ni");if(ni)ni.value=u2.nick}
+sp();
 </script>
 </body>
 </html>
