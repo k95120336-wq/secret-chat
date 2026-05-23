@@ -20,6 +20,8 @@ body{font:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;background:#f5f5f
 .hd{background:#ff6b6b;color:#fff;padding:12px 0;position:sticky;top:0;z-index:100;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:space-between;justify-content:space-between}
 .hd h1{font-size:18px;padding:0 15px}
 .hd .u{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;padding:0 15px}
+.hd .logout{font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;padding:4px 8px;border-radius:6px;white-space:nowrap}
+.hd .logout:active{background:rgba(255,255,255,0.2)}
 .hd .u img{width:32px;height:32px;border-radius:50%;object-fit:cover}
 .np{background:#fff;border-radius:12px;padding:15px;margin-bottom:15px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
 .np textarea{width:100%;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:14px;resize:vertical;min-height:80px;margin-bottom:10px;outline:none}
@@ -73,7 +75,7 @@ body{font:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;background:#f5f5f
 <body>
 <div id="pwb" style="display:none"><div class="c"><div class="bx"><h2>常常在线</h2><input class="in" type="password" id="pwi" placeholder="请输入密码" onkeydown="if(event.key==='Enter')chkPw()"><button class="btn" onclick="chkPw()">进入</button><div class="er" id="pwe"></div></div></div></div>
 <div id="lgb" style="display:none"><div class="c"><div class="bx"><h2>设置账号</h2><div class="up"><img id="avP" class="av" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23eee'/%3E%3Ctext x='40' y='45' text-anchor='middle' fill='%23999' font-size='28'%3E+%3C/text%3E%3C/svg%3E" onclick="document.getElementById('avI').click()"><input type="file" accept="image/*" id="avI" onchange="prAv(event)"><div class="hint">点击上传头像</div></div><input class="in" type="text" id="ni" placeholder="输入昵称" onkeydown="if(event.key==='Enter')go()"><input class="smin" type="password" id="tki" placeholder="输入GitHub Token（用于跨设备同步）" onkeydown="if(event.key==='Enter')go()"><div class="tip">Token只有<strong>public_repo</strong>权限，存在你本机，只用于同步帖子数据。可以问我要。</div><button class="btn" id="lgnb">进入</button><div class="er" id="le"></div></div></div></div>
-<div id="app" style="display:none"><div class="hd"><h1>常常在线</h1><div class="u"><img id="ua"><span id="un"></span></div></div><div class="c"><div class="np"><textarea id="pt" placeholder="写点什么..."></textarea><div class="ipre" id="pip"></div><div class="ac"><div class="il"><label for="ii">图片(最多5张)</label><input type="file" accept="image/*" multiple id="ii" onchange="hUp(event)"></div><button onclick="sP()">发布</button></div><div class="er" id="pe"></div></div><div id="pc"></div></div></div>
+<div id="app" style="display:none"><div class="hd"><h1>常常在线</h1><div class="u"><img id="ua"><span id="un"></span><span class="logout" onclick="lo()">退出</span></div></div><div class="c"><div class="np"><textarea id="pt" placeholder="写点什么..."></textarea><div class="ipre" id="pip"></div><div class="ac"><div class="il"><label for="ii">图片(最多5张)</label><input type="file" accept="image/*" multiple id="ii" onchange="hUp(event)"></div><button onclick="sP()">发布</button></div><div class="er" id="pe"></div></div><div id="pc"></div></div></div>
 <script>
 var PW="199796",SK="ccd",cu=null,ui=[];
 var GH_REPO="k95120336-wq/secret-chat";
@@ -137,6 +139,7 @@ function doSync(){
 }
 
 function sp(){var p=localStorage.getItem("ccpw");if(p===PW){document.getElementById("pwb").style.display="none";il()}else{document.getElementById("pwb").style.display="block"}}
+function lo(){localStorage.removeItem("ccpw");localStorage.removeItem("ccu");localStorage.removeItem("cc_token");cu=null;document.getElementById("app").style.display="none";document.getElementById("pwb").style.display="block"}
 function chkPw(){if(document.getElementById("pwi").value===PW){localStorage.setItem("ccpw",PW);document.getElementById("pwb").style.display="none";il()}else{document.getElementById("pwe").textContent="密码错误"}}
 function il(){var s=localStorage.getItem("ccu");if(s){cu=JSON.parse(s);rA()}else{document.getElementById("lgb").style.display="block"}}
 
