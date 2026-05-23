@@ -99,7 +99,7 @@ function ghApi(method, data){
   if(data){xhr.setRequestHeader("Content-Type","application/json");xhr.send(JSON.stringify(data))}
   else{xhr.send()}
   if(xhr.status>=200&&xhr.status<300)return JSON.parse(xhr.responseText);
-  return null;
+  return {error:true,status:xhr.status,text:xhr.responseText};
 }
 
 function syncDown(){
@@ -117,10 +117,12 @@ function syncDown(){
         if(data.nextId>local.nextId)local.nextId=data.nextId;
         sd(local);
       }
-      return {data:local,sha:r.sha};
+      var isEmpty=!data.posts||data.posts.length===0;
+      return {data:local,sha:r.sha,empty:isEmpty};
     }catch(e){}
   }
-  return {data:gd(),sha:null};
+  // File doesn't exist or is empty
+  return {data:gd(),sha:null,empty:true};
 }
 
 function syncUp(sha){
@@ -134,7 +136,21 @@ function syncUp(sha){
 
 function doSync(){
   var r=syncDown();
-  if(gt())syncUp(r.sha);
+  var t=gt();
+  if(t){
+    var data=gd();
+    // If no remote data exists or remote is empty, write local data up
+    if(!r.sha||r.empty){
+      var jsonStr=JSON.stringify(data);
+      var enc=btoa(unescape(encodeURIComponent(jsonStr)));
+      var body={message:"sync",content:enc,branch:GH_BRANCH};
+      if(r.sha)body.sha=r.sha;
+      var res=ghApi("PUT",body);
+      if(res&&res.error)console.log("Sync PUT error:",res.status,res.text);
+    } else {
+      syncUp(r.sha);
+    }
+  }
   return r.data;
 }
 
@@ -157,7 +173,7 @@ document.getElementById("lgnb").onclick=async function(){
   rA()}
 
 function rA(){document.getElementById("lgb").style.display="none";document.getElementById("app").style.display="block";document.getElementById("ua").src=cu.avatar;document.getElementById("un").textContent=cu.nick;lP()}
-function lP(){var d=doSync();var c=document.getElementById("pc");if(!d.posts||!d.posts.length){c.innerHTML='<div class="empty">暂无帖子</div>';return}c.innerHTML="";d.posts.sort(function(a,b){return b.id-a.id}).forEach(function(p){c.appendChild(rP(p))})}
+function lP(){var d=doSync();var c=document.getElementById("pc");if(!d.posts||!d.posts.length){c.innerHTML='<div class="empty">暂无帖子</div>';return}c.innerHTML="";d.posts.sort(function(a,b){return b.id-a.id}).forEach(function(p){c.appendChild(rP(p))});var t=gt();if(t&&d.posts.length>0)console.log("Synced:",d.posts.length,"posts")}
 
 function rP(p){var d=document.createElement("div");d.className="post";var ia=cu&&cu.nick===p.author&&cu.avatar===p.avatar;var imgs="";if(p.images&&p.images.length)imgs='<div class="pimgs">'+p.images.map(function(s){return '<img src="'+s+'" onclick="oL(\''+s+'\')">'}).join("")+'</div>';var reps="";if(p.replies&&p.replies.length)reps='<div class="rs">'+p.replies.map(function(r){var ri="";if(r.image)ri='<div class="ri"><img src="'+r.image+'" onclick="oL(\''+r.image+'\')"></div>';return '<div class="r"><div class="rh"><img src="'+r.avatar+'"><span class="ra">'+es(r.author)+'</span><span class="rl">'+es(r.time)+'</span></div><div class="rt">'+es(r.text)+'</div>'+ri+'</div>'}).join("")+'</div>';var del=ia?'<span class="db" onclick="dP('+p.id+')">删除</span>':"";d.innerHTML='<div class="ph"><img src="'+p.avatar+'"><div><div class="pa">'+es(p.author)+'</div><div class="pt">'+es(p.time)+'</div></div>'+del+'</div><div class="pc">'+es(p.text)+'</div>'+imgs+'<div class="pacts"><span onclick="sR('+p.id+')">回复</span></div>'+reps+'<div class="rf" id="rf'+p.id+'" style="display:none"><input type="text" placeholder="输入回复..." id="ri'+p.id+'"><input type="file" accept="image/*" id="rfi'+p.id+'" style="display:none"><label for="rfi'+p.id+'" style="padding:6px 10px;background:#eee;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">图片</label><button onclick="sbR('+p.id+')">发送</button></div>';return d}
 
