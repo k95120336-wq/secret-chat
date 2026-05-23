@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>私密论坛</title>
+<link rel="preload" href="avatars.json" as="fetch" crossorigin="anonymous">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#f5f5f5;color:#333;min-height:100vh}
@@ -132,15 +133,31 @@ function fUrl(f) {
   });
 }
 function loadAvatars() {
+    // Try cache first
+    var cached = localStorage.getItem("avatars_cache");
+    var cacheTime = localStorage.getItem("avatars_cache_time");
+    if (cached && cacheTime && (Date.now() - parseInt(cacheTime) < 86400000)) {
+        AVATARS = JSON.parse(cached);
+        showPage();
+        return;
+    }
     var x = new XMLHttpRequest();
     x.onload = function() {
         AVATARS = JSON.parse(x.responseText);
+        localStorage.setItem("avatars_cache", x.responseText);
+        localStorage.setItem("avatars_cache_time", String(Date.now()));
         showPage();
     };
     x.onerror = function() {
-        document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#999">头像加载失败，请刷新重试</div>';
+        // Fallback to cache even if expired
+        if (cached) {
+            AVATARS = JSON.parse(cached);
+            showPage();
+        } else {
+            document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#999">头像加载失败，请刷新重试</div>';
+        }
     };
-    x.open("GET", "avatars.json", true);
+    x.open("GET", "avatars.json?v=" + Date.now(), true);
     x.send();
 }
 function showPage() {
