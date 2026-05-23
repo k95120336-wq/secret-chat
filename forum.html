@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>私密论坛</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#f5f5f5;color:#333;min-height:100vh}
+.container{max-width:700px;margin:0 auto;padding:15px}
+.login-box,.password-box{background:#fff;border-radius:12px;padding:30px 20px;margin-top:60px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.password-box h2,.login-box h2{text-align:center;margin-bottom:20px;color:#ff6b6b}
+.password-box input,.login-box input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:16px;margin-bottom:15px;outline:none}
+.password-box input:focus,.login-box input:focus{border-color:#ff6b6b}
+.password-box button,.login-box button{width:100%;padding:12px;background:#ff6b6b;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer}
+.password-box button:hover{background:#ee5a5a}
+.avatar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:8px;margin:10px 0 15px}
+.avatar-grid img{width:60px;height:60px;border-radius:50%;cursor:pointer;border:3px solid transparent;object-fit:cover}
+.avatar-grid img.selected{border-color:#ff6b6b}
+.avatar-upload{display:flex;align-items:center;gap:10px;margin-bottom:15px}
+.avatar-upload label{padding:8px 16px;background:#eee;border-radius:8px;cursor:pointer;font-size:14px}
+.avatar-upload input{display:none}
+.avatar-preview{width:50px;height:50px;border-radius:50%;object-fit:cover}
+header{background:#ff6b6b;color:#fff;padding:12px 0;position:sticky;top:0;z-index:100}
+.header-inner{display:flex;align-items:center;justify-content:space-between;max-width:700px;margin:0 auto;padding:0 15px}
+.header-inner h1{font-size:18px}
+.user-info{display:flex;align-items:center;gap:10px}
+.user-info img{width:32px;height:32px;border-radius:50%;object-fit:cover}
+.new-post{background:#fff;border-radius:12px;padding:15px;margin-bottom:15px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.new-post textarea{width:100%;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:14px;resize:vertical;min-height:80px;margin-bottom:10px;outline:none}
+.new-post textarea:focus{border-color:#ff6b6b}
+.new-post .actions{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.new-post .actions button{padding:8px 20px;background:#ff6b6b;color:#fff;border:none;border-radius:8px;cursor:pointer}
+.new-post .actions button:hover{background:#ee5a5a}
+.image-upload{display:flex;align-items:center;gap:8px}
+.image-upload label{padding:6px 12px;background:#eee;border-radius:6px;cursor:pointer;font-size:13px}
+.image-upload input{display:none}
+.image-previews{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.image-previews img{width:80px;height:80px;object-fit:cover;border-radius:6px}
+.image-previews .img-wrapper{position:relative;display:inline-block}
+.image-previews .img-wrapper .remove{position:absolute;top:-4px;right:-4px;background:rgba(0,0,0,0.6);color:#fff;border-radius:50%;width:18px;height:18px;font-size:12px;line-height:18px;text-align:center;cursor:pointer}
+.post{background:#fff;border-radius:12px;padding:15px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.post-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.post-header img{width:36px;height:36px;border-radius:50%;object-fit:cover}
+.post-author{font-weight:600;font-size:14px}
+.post-time{color:#999;font-size:12px}
+.post-text{font-size:14px;line-height:1.6;margin-bottom:8px;word-break:break-word;white-space:pre-wrap}
+.post-images{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.post-images img{max-width:100%;max-height:300px;border-radius:8px;cursor:pointer}
+.post-actions{display:flex;gap:12px;font-size:13px;color:#999;margin-bottom:8px}
+.post-actions span{cursor:pointer}
+.post-actions span:hover{color:#ff6b6b}
+.reply-section{padding-left:20px;border-left:2px solid #eee}
+.reply{padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.reply:last-child{border-bottom:none}
+.reply .reply-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.reply .reply-header img{width:28px;height:28px;border-radius:50%;object-fit:cover}
+.reply-author{font-weight:600}
+.reply-time{color:#999;font-size:11px;margin-left:4px}
+.reply-text{line-height:1.5;word-break:break-word;white-space:pre-wrap}
+.reply-image img{max-width:200px;max-height:200px;border-radius:6px;margin-top:4px;cursor:pointer}
+.reply-form{display:flex;gap:8px;align-items:flex-start;margin-top:8px}
+.reply-form input[type=text]{flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none}
+.reply-form input[type=text]:focus{border-color:#ff6b6b}
+.reply-form button{padding:8px 14px;background:#ff6b6b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap}
+.reply-form button:hover{background:#ee5a5a}
+.delete-btn{color:#ff4444;font-size:12px;cursor:pointer;margin-left:auto}
+.delete-btn:hover{text-decoration:underline}
+.empty{text-align:center;color:#999;padding:40px;font-size:14px}
+.lightbox{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:1000;cursor:pointer}
+.lightbox img{max-width:90%;max-height:90%;border-radius:8px}
+.error{color:#ff4444;font-size:13px;text-align:center;margin-top:8px;min-height:20px}
+input,button,textarea{font-family:inherit}
+</style>
+</head>
+<body>
+<div id="pw" class="container" style="display:none">
+<div class="password-box"><h2>私密论坛</h2>
+<input type="password" id="pwi" placeholder="请输入密码" onkeydown="if(event.key==='Enter')checkPass()">
+<button onclick="checkPass()">进入论坛</button>
+<div class="error" id="pwe"></div></div></div>
+<div id="lb" class="container" style="display:none">
+<div class="login-box"><h2>设置账号</h2>
+<input type="text" id="ni" placeholder="输入昵称" onkeydown="if(event.key==='Enter')document.getElementById('lgn').click()">
+<div style="margin:8px 0;font-size:14px;color:#666">选择头像</div>
+<div class="avatar-grid" id="ag"></div>
+<div style="margin:8px 0;font-size:14px;color:#666">或上传自定义头像</div>
+<div class="avatar-upload"><label for="cai">上传图片</label>
+<input type="file" accept="image/*" id="cai">
+<img class="avatar-preview" id="cap" style="display:none"></div>
+<button id="lgn">进入论坛</button>
+<div class="error" id="le"></div></div></div>
+<div id="app" style="display:none">
+<header><div class="header-inner"><h1>私密论坛</h1>
+<div class="user-info"><img id="ua"><span id="un"></span></div></div></header>
+<div class="container">
+<div class="new-post">
+<textarea id="pt" placeholder="写点什么..."></textarea>
+<div class="image-previews" id="pip"></div>
+<div class="actions">
+<div class="image-upload"><label for="ii">图片(最多5张)</label>
+<input type="file" accept="image/*" multiple id="ii" onchange="handleUpload(event)"></div>
+<button onclick="submitPost()">发布</button></div>
+<div class="error" id="pe"></div></div>
+<div id="pc"></div></div></div>
+<script>
+var AVATARS = {};
+var PASSWORD_HASH = "199796";
+var STORAGE_KEY = "forum_data";
+var currentUser = null;
+var uploadImages = [];
+
+function getData() {
+  var r = localStorage.getItem(STORAGE_KEY);
+  return r ? JSON.parse(r) : { posts: [], nextId: 1 };
+}
+function saveData(d) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+  if (window.BroadcastChannel) {
+    new BroadcastChannel("fc").postMessage({ type: "u" });
+  }
+}
+function escHtml(s) {
+  if (!s) return "";
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function fUrl(f) {
+  return new Promise(function(r) {
+    var x = new FileReader();
+    x.onload = function(e) { r(e.target.result); };
+    x.readAsDataURL(f);
+  });
+}
+function loadAvatars() {
+    var x = new XMLHttpRequest();
+    x.onload = function() {
+        AVATARS = JSON.parse(x.responseText);
+        showPage();
+    };
+    x.onerror = function() {
+        document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#999">头像加载失败，请刷新重试</div>';
+    };
+    x.open("GET", "avatars.json", true);
+    x.send();
+}
+function showPage() {
+    var p = localStorage.getItem("forum_pw");
+    if (p === PASSWORD_HASH) {
+        document.getElementById("pw").style.display = "none";
+        initLogin();
+    } else {
+        document.getElementById("pw").style.display = "block";
+    }
+}
+function checkPass() {
+    var i = document.getElementById("pwi").value;
+    if (i === PASSWORD_HASH) {
+        localStorage.setItem("forum_pw", PASSWORD_HASH);
+        document.getElementById("pw").style.display = "none";
+        initLogin();
+    } else {
+        document.getElementById("pwe").textContent = "密码错误";
+    }
+}
+function initLogin() {
+    var s = localStorage.getItem("forum_user");
+    if (s) {
+        currentUser = JSON.parse(s);
+        renderApp();
+    } else {
+        renderLogin();
+    }
+}
+function renderLogin() {
+    document.getElementById("app").style.display = "none";
+    document.getElementById("lb").style.display = "block";
+    var g = document.getElementById("ag");
+    g.innerHTML = "";
+    var a = Object.keys(AVATARS).sort();
+    var sel = null;
+    a.forEach(function(n) {
+        var i = document.createElement("img");
+        i.src = AVATARS[n];
+        i.onclick = function() {
+            document.querySelectorAll("#ag img").forEach(function(x) { x.classList.remove("selected"); });
+            this.classList.add("selected");
+            sel = n;
+            document.getElementById("cap").style.display = "none";
+        };
+        g.appendChild(i);
+    });
+    document.getElementById("cai").onchange = async function(e) {
+        if (e.target.files && e.target.files[0]) {
+            var d = await fUrl(e.target.files[0]);
+            document.getElementById("cap").src = d;
+            document.getElementById("cap").style.display = "inline-block";
+            document.querySelectorAll("#ag img").forEach(function(x) { x.classList.remove("selected"); });
+            sel = { custom: d };
+        }
+    };
+    document.getElementById("lgn").onclick = function() {
+        var n = document.getElementById("ni").value.trim();
+        if (!n) { document.getElementById("le").textContent = "请输入昵称"; return; }
+        if (!sel) { document.getElementById("le").textContent = "请选择头像"; return; }
+        var av = (typeof sel === "object" && sel.custom) ? sel.custom : AVATARS[sel];
+        currentUser = { nick: n, avatar: av };
+        localStorage.setItem("forum_user", JSON.stringify(currentUser));
+        document.getElementById("lb").style.display = "none";
+        renderApp();
+    };
+}
+function renderApp() {
+    document.getElementById("lb").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("ua").src = currentUser.avatar;
+    document.getElementById("un").textContent = currentUser.nick;
+    loadPosts();
+}
+function loadPosts() {
+    var d = getData();
+    var c = document.getElementById("pc");
+    if (!d.posts || d.posts.length === 0) {
+        c.innerHTML = '<div class="empty">暂无帖子</div>';
+        return;
+    }
+    c.innerHTML = "";
+    d.posts.sort(function(a, b) { return b.id - a.id; }).forEach(function(p) {
+        c.appendChild(renderPost(p));
+    });
+}
+function renderPost(p) {
+    var d = document.createElement("div");
+    d.className = "post";
+    var isAuth = currentUser && currentUser.nick === p.author && currentUser.avatar === p.avatar;
+    var imgs = "";
+    if (p.images && p.images.length > 0) {
+        imgs = '<div class="post-images">' + p.images.map(function(s) {
+            return '<img src="' + s + '" onclick="openLB(\'' + s + '\')">';
+        }).join("") + '</div>';
+    }
+    var reps = "";
+    if (p.replies && p.replies.length > 0) {
+        reps = '<div class="reply-section">' + p.replies.map(function(r) {
+            var ri = "";
+            if (r.image) ri = '<div class="reply-image"><img src="' + r.image + '" onclick="openLB(\'' + r.image + '\')"></div>';
+            return '<div class="reply"><div class="reply-header"><img src="' + r.avatar + '"><span class="reply-author">' + escHtml(r.author) + '</span><span class="reply-time">' + escHtml(r.time) + '</span></div><div class="reply-text">' + escHtml(r.text) + '</div>' + ri + '</div>';
+        }).join("") + '</div>';
+    }
+    var del = isAuth ? '<span class="delete-btn" onclick="delPost(' + p.id + ')">删除</span>' : "";
+    d.innerHTML = '<div class="post-header"><img src="' + p.avatar + '"><div><div class="post-author">' + escHtml(p.author) + '</div><div class="post-time">' + escHtml(p.time) + '</div></div>' + del + '</div><div class="post-text">' + escHtml(p.text) + '</div>' + imgs + '<div class="post-actions"><span onclick="showReply(' + p.id + ')">回复</span></div>' + reps + '<div class="reply-form" id="rf' + p.id + '" style="display:none"><input type="text" placeholder="输入回复..." id="ri' + p.id + '"><input type="file" accept="image/*" id="rfi' + p.id + '" style="display:none"><label for="rfi' + p.id + '" style="padding:6px 10px;background:#eee;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">图片</label><button onclick="submitReply(' + p.id + ')">发送</button></div>';
+    return d;
+}
+function submitPost() {
+    var t = document.getElementById("pt").value.trim();
+    if (!t) { document.getElementById("pe").textContent = "请输入内容"; return; }
+    var imgs = uploadImages.slice(0, 5);
+    var d = getData();
+    d.posts.push({ id: d.nextId++, author: currentUser.nick, avatar: currentUser.avatar, time: new Date().toLocaleString("zh-CN", { hour12: false }), text: t, images: imgs, replies: [] });
+    saveData(d);
+    document.getElementById("pt").value = "";
+    uploadImages = [];
+    document.getElementById("pip").innerHTML = "";
+    loadPosts();
+}
+function showReply(id) {
+    var f = document.getElementById("rf" + id);
+    if (f) f.style.display = f.style.display === "none" ? "flex" : "none";
+}
+async function submitReply(pid) {
+    var i = document.getElementById("ri" + pid);
+    var fi = document.getElementById("rfi" + pid);
+    var t = i.value.trim();
+    if (!t) return;
+    var img = null;
+    if (fi.files && fi.files[0]) img = await fUrl(fi.files[0]);
+    var d = getData();
+    var p = d.posts.find(function(x) { return x.id === pid; });
+    if (p) {
+        if (!p.replies) p.replies = [];
+        p.replies.push({ author: currentUser.nick, avatar: currentUser.avatar, time: new Date().toLocaleString("zh-CN", { hour12: false }), text: t, image: img });
+        saveData(d);
+    }
+    i.value = "";
+    fi.value = "";
+    loadPosts();
+}
+function delPost(id) {
+    if (!confirm("确定删除？")) return;
+    var d = getData();
+    d.posts = d.posts.filter(function(p) { return p.id !== id; });
+    saveData(d);
+    loadPosts();
+}
+function handleUpload(e) {
+    var files = e.target.files;
+    var p = document.getElementById("pip");
+    for (var k = 0; k < files.length; k++) {
+        if (uploadImages.length >= 5) break;
+        var r = new FileReader();
+        (function(idx) {
+            r.onload = function(ev) {
+                uploadImages.push(ev.target.result);
+                var w = document.createElement("div");
+                w.className = "img-wrapper";
+                w.innerHTML = '<img src="' + ev.target.result + '"><span class="remove" onclick="removeImg(' + idx + ')">x</span>';
+                p.appendChild(w);
+            };
+        })(uploadImages.length);
+        r.readAsDataURL(files[k]);
+    }
+    e.target.value = "";
+}
+function removeImg(idx) {
+    uploadImages.splice(idx, 1);
+    var p = document.getElementById("pip");
+    p.innerHTML = "";
+    uploadImages.forEach(function(s, i) {
+        var w = document.createElement("div");
+        w.className = "img-wrapper";
+        w.innerHTML = '<img src="' + s + '"><span class="remove" onclick="removeImg(' + i + ')">x</span>';
+        p.appendChild(w);
+    });
+}
+function openLB(src) {
+    var l = document.createElement("div");
+    l.className = "lightbox";
+    l.onclick = function() { l.remove(); };
+    l.innerHTML = '<img src="' + src + '">';
+    document.body.appendChild(l);
+}
+if (window.BroadcastChannel) {
+    new BroadcastChannel("fc").onmessage = function(e) {
+        if (e.data && e.data.type === "u" && currentUser) loadPosts();
+    };
+}
+// Wait for DOM then load avatars
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadAvatars);
+} else {
+    loadAvatars();
+}
+</script>
+</body>
+</html>
