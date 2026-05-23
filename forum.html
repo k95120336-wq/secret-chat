@@ -92,8 +92,8 @@ function gt(){var t=localStorage.getItem("cc_token");return t||null}
 // === UTF-8 safe base64 helpers ===
 function utf8ToBytes(s){var b=[],i;for(i=0;i<s.length;i++){var c=s.charCodeAt(i);if(c<128)b.push(c);else if(c<2048)b.push(192|c>>6,128|c&63);else b.push(224|c>>12,128|c>>6&63,128|c&63)}return b}
 function bytesToUtf8(b){var s='',i=0;while(i<b.length){var x=b[i++];if(x<128)s+=String.fromCharCode(x);else if(x<224)s+=String.fromCharCode((x&31)<<6|b[i++]&63);else s+=String.fromCharCode((x&15)<<12|(b[i++]&63)<<6|b[i++]&63)}return s}
-function toBase64(s){var u=utf8ToBytes(s);return btoa(String.fromCharCode.apply(null,u))}
-function fromBase64(s){var u=atob(s).split('').map(function(c){return c.charCodeAt(0)});return bytesToUtf8(u)}
+function toBase64(s){var u=utf8ToBytes(s),r='',i;for(i=0;i<u.length;i+=65536)r+=String.fromCharCode.apply(null,u.slice(i,i+65536));return btoa(r)}
+function fromBase64(s){var u=[],a=atob(s),i;for(i=0;i<a.length;i++)u.push(a.charCodeAt(i));return bytesToUtf8(u)}
 
 // === GitHub Sync ===
 function ghApi(method, data){
@@ -126,7 +126,7 @@ function syncDown(){
       }
       var isEmpty=!data.posts||data.posts.length===0;
       return {data:local,sha:r.sha,empty:isEmpty};
-    }catch(e){console.log("syncDown error:",e)}
+    }catch(e){}
   }
   return {data:gd(),sha:null,empty:true};
 }
@@ -137,16 +137,21 @@ function syncUp(sha){
   var enc=toBase64(jsonStr);
   var body={message:"sync",content:enc,branch:GH_BRANCH};
   if(sha)body.sha=sha;
-  ghApi("PUT",body);
+  var res=ghApi("PUT",body);
+  if(res===null&&!sha){
+    // First PUT failed without sha - try with empty sha
+    body.sha=null;
+    body.content=enc;
+    ghApi("PUT",body);
+  }
 }
 
 function doSync(){
   var r=syncDown();
   var t=gt();
-  if(t){
+  if(t&&!r.inSync){
     var data=gd();
     if(!r.sha||r.empty){
-      // First time: create file with local data
       syncUp(null);
     } else {
       syncUp(r.sha);
