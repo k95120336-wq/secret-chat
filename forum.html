@@ -95,69 +95,84 @@ function bytesToUtf8(b){var s='',i=0;while(i<b.length){var x=b[i++];if(x<128)s+=
 function toBase64(s){var u=utf8ToBytes(s),r='',i;for(i=0;i<u.length;i+=65536)r+=String.fromCharCode.apply(null,u.slice(i,i+65536));return btoa(r)}
 function fromBase64(s){var u=[],a=atob(s),i;for(i=0;i<a.length;i++)u.push(a.charCodeAt(i));return bytesToUtf8(u)}
 
-// === GitHub Sync ===
-function ghApi(method, data){
-  var token=gt();if(!token)return null;
+// === GitHub Sync (async, non-blocking) ===
+function ghApi(method, data, cb){
+  var token=gt();if(!token){if(cb)cb(null);return}
   var url="https://api.github.com/repos/"+GH_REPO+"/contents/forum_data.json";
   var xhr=new XMLHttpRequest();
-  xhr.open(method,url,false);
+  xhr.open(method,url,true);
   xhr.setRequestHeader("Authorization","Bearer "+token);
   xhr.setRequestHeader("Accept","application/vnd.github.v3+json");
+  xhr.onreadystatechange=function(){
+    if(xhr.readyState!==4)return;
+    if(xhr.status>=200&&xhr.status<300){
+      if(cb)cb(JSON.parse(xhr.responseText));
+    }else{
+      if(cb)cb(null);
+    }
+  };
   if(data){xhr.setRequestHeader("Content-Type","application/json");xhr.send(JSON.stringify(data))}
   else{xhr.send()}
-  if(xhr.status>=200&&xhr.status<300)return JSON.parse(xhr.responseText);
-  return null;
 }
 
-function syncDown(){
-  var r=ghApi("GET");
-  if(r&&r.content){
-    try{
-      var dec=fromBase64(r.content.replace(/\n/g,""));
-      var data=JSON.parse(dec);
-      var local=gd();
-      if(data.posts&&data.posts.length>0){
-        var merged={};
-        (local.posts||[]).forEach(function(p){merged[p.id]=p});
-        data.posts.forEach(function(p){merged[p.id]=p});
-        local.posts=Object.keys(merged).map(function(k){return merged[k]});
-        if(data.nextId>local.nextId)local.nextId=data.nextId;
-        sd(local);
-      }
-      var isEmpty=!data.posts||data.posts.length===0;
-      return {data:local,sha:r.sha,empty:isEmpty};
-    }catch(e){}
-  }
-  return {data:gd(),sha:null,empty:true};
+function syncDown(cb){
+  ghApi("GET",null,function(r){
+    if(r&&r.content){
+      try{
+        var dec=fromBase64(r.content.replace(/\n/g,""));
+        var data=JSON.parse(dec);
+        var local=gd();
+        if(data.posts&&data.posts.length>0){
+          var merged={};
+          (local.posts||[]).forEach(function(p){merged[p.id]=p});
+          data.posts.forEach(function(p){merged[p.id]=p});
+          local.posts=Object.keys(merged).map(function(k){return merged[k]});
+          if(data.nextId>local.nextId)local.nextId=data.nextId;
+          sd(local);
+        }
+        if(cb)cb({data:local,sha:r.sha});
+        return;
+      }catch(e){}
+    }
+    if(cb)cb({data:gd(),sha:null});
+  });
 }
 
-function syncUp(sha){
+function syncUp(sha,cb){
   var data=gd();
   var jsonStr=JSON.stringify(data);
   var enc=toBase64(jsonStr);
   var body={message:"sync",content:enc,branch:GH_BRANCH};
   if(sha)body.sha=sha;
-  var res=ghApi("PUT",body);
-  if(res===null&&!sha){
-    // First PUT failed without sha - try with empty sha
-    body.sha=null;
-    body.content=enc;
-    ghApi("PUT",body);
-  }
+  ghApi("PUT",body,function(r){
+    if(!r&&!sha){
+      body.sha=null;
+      delete body.sha;
+      ghApi("PUT",body,cb);
+    }else if(cb)cb(r);
+  });
 }
 
-function doSync(){
-  var r=syncDown();
-  var t=gt();
-  if(t&&!r.inSync){
-    var data=gd();
-    if(!r.sha||r.empty){
-      syncUp(null);
-    } else {
-      syncUp(r.sha);
+var syncBusy=false;
+function doSync(cb){
+  if(syncBusy){if(cb)cb(gd());return}
+  syncBusy=true;
+  syncDown(function(r){
+    var t=gt();
+    if(t&&r){
+      if(!r.sha){
+        syncUp(null,function(){
+          syncBusy=false;if(cb)cb(gd());
+        });
+      }else{
+        syncUp(r.sha,function(){
+          syncBusy=false;if(cb)cb(gd());
+        });
+      }
+    }else{
+      syncBusy=false;if(cb)cb(gd());
     }
-  }
-  return r.data||gd();
+  });
 }
 
 // === App flow ===
@@ -182,7 +197,7 @@ document.getElementById("lgnb").onclick=async function(){
 // === Render ===
 function rA(){document.getElementById("lgb").style.display="none";document.getElementById("app").style.display="block";document.getElementById("ua").src=cu.avatar;document.getElementById("un").textContent=cu.nick;lP()}
 
-function lP(){var d=doSync();var c=document.getElementById("pc");if(!d.posts||!d.posts.length){c.innerHTML='<div class="empty">暂无帖子</div>';return}c.innerHTML="";d.posts.sort(function(a,b){return b.id-a.id}).forEach(function(p){c.appendChild(rP(p))})}
+function lP(){doSync(function(d){var c=document.getElementById("pc");if(!d.posts||!d.posts.length){c.innerHTML='<div class="empty">暂无帖子</div>';return}c.innerHTML="";d.posts.sort(function(a,b){return b.id-a.id}).forEach(function(p){c.appendChild(rP(p))})})}
 
 function rP(p){
   var d=document.createElement("div");d.className="post";
@@ -195,10 +210,10 @@ function rP(p){
 }
 
 // === Actions ===
-function sP(){var t=document.getElementById("pt").value.trim();if(!t){document.getElementById("pe").textContent="请输入内容";return}var imgs=ui.slice(0,5);var d=gd();d.posts.push({id:d.nextId++,author:cu.nick,avatar:cu.avatar,time:new Date().toLocaleString("zh-CN",{hour12:false}),text:t,images:imgs,replies:[]});sd(d);doSync();document.getElementById("pt").value="";ui=[];document.getElementById("pip").innerHTML="";lP()}
+function sP(){var t=document.getElementById("pt").value.trim();if(!t){document.getElementById("pe").textContent="请输入内容";return}var imgs=ui.slice(0,5);var d=gd();d.posts.push({id:d.nextId++,author:cu.nick,avatar:cu.avatar,time:new Date().toLocaleString("zh-CN",{hour12:false}),text:t,images:imgs,replies:[]});sd(d);document.getElementById("pt").value="";ui=[];document.getElementById("pip").innerHTML="";doSync(function(){lP()})}
 function sR(id){var f=document.getElementById("rf"+id);if(f)f.style.display=f.style.display==="none"?"flex":"none"}
-async function sbR(pid){var i=document.getElementById("ri"+pid),fi=document.getElementById("rfi"+pid),t=i.value.trim();if(!t)return;var img=null;if(fi.files&&fi.files[0])img=await fu(fi.files[0]);var d=gd(),p=d.posts.find(function(x){return x.id===pid});if(p){if(!p.replies)p.replies=[];p.replies.push({author:cu.nick,avatar:cu.avatar,time:new Date().toLocaleString("zh-CN",{hour12:false}),text:t,image:img});sd(d)}i.value="";fi.value="";doSync();lP()}
-function dP(id){if(!confirm("确定删除？"))return;var d=gd();d.posts=d.posts.filter(function(p){return p.id!==id});sd(d);doSync();lP()}
+async function sbR(pid){var i=document.getElementById("ri"+pid),fi=document.getElementById("rfi"+pid),t=i.value.trim();if(!t)return;var img=null;if(fi.files&&fi.files[0])img=await fu(fi.files[0]);var d=gd(),p=d.posts.find(function(x){return x.id===pid});if(p){if(!p.replies)p.replies=[];p.replies.push({author:cu.nick,avatar:cu.avatar,time:new Date().toLocaleString("zh-CN",{hour12:false}),text:t,image:img});sd(d)}i.value="";fi.value="";doSync(function(){lP()})}
+function dP(id){if(!confirm("确定删除？"))return;var d=gd();d.posts=d.posts.filter(function(p){return p.id!==id});sd(d);doSync(function(){lP()})}
 function hUp(e){var fs=e.target.files,p=document.getElementById("pip");for(var k=0;k<fs.length;k++){if(ui.length>=5)break;(function(idx){var r=new FileReader();r.onload=function(ev){ui.push(ev.target.result);var w=document.createElement("div");w.className="iw";w.innerHTML='<img src="'+ev.target.result+'"><span class="rm" onclick="rI('+idx+')">x</span>';p.appendChild(w)};r.readAsDataURL(fs[k])})(ui.length)}e.target.value=""}
 function rI(idx){ui.splice(idx,1);document.getElementById("pip").innerHTML="";ui.forEach(function(s,i){var w=document.createElement("div");w.className="iw";w.innerHTML='<img src="'+s+'"><span class="rm" onclick="rI('+i+')">x</span>';document.getElementById("pip").appendChild(w)})}
 function oL(src){var l=document.createElement("div");l.className="lb";l.onclick=function(){l.remove()};l.innerHTML='<img src="'+src+'">';document.body.appendChild(l)}
