@@ -201,7 +201,7 @@ function lP(){doSync(function(d){var c=document.getElementById("pc");if(!d.posts
 
 function rP(p){
   var d=document.createElement("div");d.className="post";
-  var ia=cu&&cu.nick===p.author&&cu.avatar===p.avatar;
+  var ia=cu&&cu.nick===p.author;
   var imgs="";if(p.images&&p.images.length)imgs='<div class="pimgs">'+p.images.map(function(s){return '<img src="'+s+'" onclick="oL(\''+s+'\')">'}).join("")+'</div>';
   var reps="";if(p.replies&&p.replies.length)reps='<div class="rs">'+p.replies.map(function(r){var ri="";if(r.image)ri='<div class="ri"><img src="'+r.image+'" onclick="oL(\''+r.image+'\')"></div>';return '<div class="r"><div class="rh"><img src="'+r.avatar+'"><span class="ra">'+es(r.author)+'</span><span class="rl">'+es(r.time)+'</span></div><div class="rt">'+es(r.text)+'</div>'+ri+'</div>'}).join("")+'</div>';
   var del=ia?'<span class="db" onclick="dP('+p.id+')">删除</span>':"";
