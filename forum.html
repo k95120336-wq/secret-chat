@@ -4,10 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>常常在线</title>
-<link rel="preload" href="avatars.json" as="fetch" crossorigin="anonymous">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#f5f5f5;color:#333;min-height:100vh}
+body{font-family:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;background:#f5f5f5;color:#333;min-height:100vh}
 .container{max-width:700px;margin:0 auto;padding:15px}
 .login-box,.password-box{background:#fff;border-radius:12px;padding:30px 20px;margin-top:60px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
 .password-box h2,.login-box h2{text-align:center;margin-bottom:20px;color:#ff6b6b}
@@ -15,13 +14,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;bac
 .password-box input:focus,.login-box input:focus{border-color:#ff6b6b}
 .password-box button,.login-box button{width:100%;padding:12px;background:#ff6b6b;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer}
 .password-box button:hover{background:#ee5a5a}
-.avatar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:8px;margin:10px 0 15px}
-.avatar-grid img{width:60px;height:60px;border-radius:50%;cursor:pointer;border:3px solid transparent;object-fit:cover}
-.avatar-grid img.selected{border-color:#ff6b6b}
-.avatar-upload{display:flex;align-items:center;gap:10px;margin-bottom:15px}
-.avatar-upload label{padding:8px 16px;background:#eee;border-radius:8px;cursor:pointer;font-size:14px}
-.avatar-upload input{display:none}
-.avatar-preview{width:50px;height:50px;border-radius:50%;object-fit:cover}
 header{background:#ff6b6b;color:#fff;padding:12px 0;position:sticky;top:0;z-index:100}
 .header-inner{display:flex;align-items:center;justify-content:space-between;max-width:700px;margin:0 auto;padding:0 15px}
 .header-inner h1{font-size:18px}
@@ -72,24 +64,28 @@ header{background:#ff6b6b;color:#fff;padding:12px 0;position:sticky;top:0;z-inde
 .lightbox img{max-width:90%;max-height:90%;border-radius:8px}
 .error{color:#ff4444;font-size:13px;text-align:center;margin-top:8px;min-height:20px}
 input,button,textarea{font-family:inherit}
+.login-avatar-area{text-align:center;margin-bottom:15px}
+.login-avatar-area .preview{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px dashed #ddd;margin-bottom:10px;cursor:pointer}
+.login-avatar-area .preview.has{background:#fff}
+.login-avatar-area .hint{font-size:13px;color:#999;margin-top:6px}
+.login-avatar-area input{display:none}
 </style>
 </head>
 <body>
 <div id="pw" class="container" style="display:none">
 <div class="password-box"><h2>常常在线</h2>
 <input type="password" id="pwi" placeholder="请输入密码" onkeydown="if(event.key==='Enter')checkPass()">
-<button onclick="checkPass()">进入论坛</button>
+<button onclick="checkPass()">进入</button>
 <div class="error" id="pwe"></div></div></div>
 <div id="lb" class="container" style="display:none">
 <div class="login-box"><h2>设置账号</h2>
+<div class="login-avatar-area">
+<img id="avatarPreview" class="preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23eee'/%3E%3Ctext x='40' y='45' text-anchor='middle' fill='%23999' font-size='28'%3E%2B%3C/text%3E%3C/svg%3E" onclick="document.getElementById('avatarInput').click()">
+<input type="file" accept="image/*" id="avatarInput" onchange="previewAvatar(event)">
+<div class="hint">点击上传头像</div>
+</div>
 <input type="text" id="ni" placeholder="输入昵称" onkeydown="if(event.key==='Enter')document.getElementById('lgn').click()">
-<div style="margin:8px 0;font-size:14px;color:#666">选择头像</div>
-<div class="avatar-grid" id="ag"></div>
-<div style="margin:8px 0;font-size:14px;color:#666">或上传自定义头像</div>
-<div class="avatar-upload"><label for="cai">上传图片</label>
-<input type="file" accept="image/*" id="cai">
-<img class="avatar-preview" id="cap" style="display:none"></div>
-<button id="lgn">进入论坛</button>
+<button id="lgn">进入</button>
 <div class="error" id="le"></div></div></div>
 <div id="app" style="display:none">
 <header><div class="header-inner"><h1>常常在线</h1>
@@ -105,9 +101,8 @@ input,button,textarea{font-family:inherit}
 <div class="error" id="pe"></div></div>
 <div id="pc"></div></div></div>
 <script>
-var AVATARS = {};
 var PASSWORD_HASH = "199796";
-var STORAGE_KEY = "forum_data";
+var STORAGE_KEY = "cc_data";
 var currentUser = null;
 var uploadImages = [];
 
@@ -118,7 +113,7 @@ function getData() {
 function saveData(d) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
   if (window.BroadcastChannel) {
-    new BroadcastChannel("fc").postMessage({ type: "u" });
+    new BroadcastChannel("cc").postMessage({ type: "u" });
   }
 }
 function escHtml(s) {
@@ -132,230 +127,193 @@ function fUrl(f) {
     x.readAsDataURL(f);
   });
 }
-function loadAvatars() {
-    // Try cache first
-    var cached = localStorage.getItem("avatars_cache");
-    var cacheTime = localStorage.getItem("avatars_cache_time");
-    if (cached && cacheTime && (Date.now() - parseInt(cacheTime) < 86400000)) {
-        AVATARS = JSON.parse(cached);
-        showPage();
-        return;
-    }
-    var x = new XMLHttpRequest();
-    x.onload = function() {
-        AVATARS = JSON.parse(x.responseText);
-        localStorage.setItem("avatars_cache", x.responseText);
-        localStorage.setItem("avatars_cache_time", String(Date.now()));
-        showPage();
+
+function previewAvatar(e) {
+  if (e.target.files && e.target.files[0]) {
+    var r = new FileReader();
+    r.onload = function(ev) {
+      document.getElementById("avatarPreview").src = ev.target.result;
+      document.getElementById("avatarPreview").classList.add("has");
     };
-    x.onerror = function() {
-        // Fallback to cache even if expired
-        if (cached) {
-            AVATARS = JSON.parse(cached);
-            showPage();
-        } else {
-            document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#999">头像加载失败，请刷新重试</div>';
-        }
-    };
-    x.open("GET", "avatars.json?v=" + Date.now(), true);
-    x.send();
+    r.readAsDataURL(e.target.files[0]);
+  }
 }
+
 function showPage() {
-    var p = localStorage.getItem("forum_pw");
-    if (p === PASSWORD_HASH) {
-        document.getElementById("pw").style.display = "none";
-        initLogin();
-    } else {
-        document.getElementById("pw").style.display = "block";
-    }
+  var p = localStorage.getItem("cc_pw");
+  if (p === PASSWORD_HASH) {
+    document.getElementById("pw").style.display = "none";
+    initLogin();
+  } else {
+    document.getElementById("pw").style.display = "block";
+  }
 }
 function checkPass() {
-    var i = document.getElementById("pwi").value;
-    if (i === PASSWORD_HASH) {
-        localStorage.setItem("forum_pw", PASSWORD_HASH);
-        document.getElementById("pw").style.display = "none";
-        initLogin();
-    } else {
-        document.getElementById("pwe").textContent = "密码错误";
-    }
+  var i = document.getElementById("pwi").value;
+  if (i === PASSWORD_HASH) {
+    localStorage.setItem("cc_pw", PASSWORD_HASH);
+    document.getElementById("pw").style.display = "none";
+    initLogin();
+  } else {
+    document.getElementById("pwe").textContent = "密码错误";
+  }
 }
 function initLogin() {
-    var s = localStorage.getItem("forum_user");
-    if (s) {
-        currentUser = JSON.parse(s);
-        renderApp();
-    } else {
-        renderLogin();
-    }
-}
-function renderLogin() {
-    document.getElementById("app").style.display = "none";
+  var s = localStorage.getItem("cc_user");
+  if (s) {
+    currentUser = JSON.parse(s);
+    renderApp();
+  } else {
     document.getElementById("lb").style.display = "block";
-    var g = document.getElementById("ag");
-    g.innerHTML = "";
-    var a = Object.keys(AVATARS).sort();
-    var sel = null;
-    a.forEach(function(n) {
-        var i = document.createElement("img");
-        i.src = AVATARS[n];
-        i.onclick = function() {
-            document.querySelectorAll("#ag img").forEach(function(x) { x.classList.remove("selected"); });
-            this.classList.add("selected");
-            sel = n;
-            document.getElementById("cap").style.display = "none";
-        };
-        g.appendChild(i);
-    });
-    document.getElementById("cai").onchange = async function(e) {
-        if (e.target.files && e.target.files[0]) {
-            var d = await fUrl(e.target.files[0]);
-            document.getElementById("cap").src = d;
-            document.getElementById("cap").style.display = "inline-block";
-            document.querySelectorAll("#ag img").forEach(function(x) { x.classList.remove("selected"); });
-            sel = { custom: d };
-        }
-    };
-    document.getElementById("lgn").onclick = function() {
-        var n = document.getElementById("ni").value.trim();
-        if (!n) { document.getElementById("le").textContent = "请输入昵称"; return; }
-        if (!sel) { document.getElementById("le").textContent = "请选择头像"; return; }
-        var av = (typeof sel === "object" && sel.custom) ? sel.custom : AVATARS[sel];
-        currentUser = { nick: n, avatar: av };
-        localStorage.setItem("forum_user", JSON.stringify(currentUser));
-        document.getElementById("lb").style.display = "none";
-        renderApp();
-    };
+  }
 }
+document.getElementById("lgn").onclick = async function() {
+  var n = document.getElementById("ni").value.trim();
+  if (!n) { document.getElementById("le").textContent = "请输入昵称"; return; }
+  var fi = document.getElementById("avatarInput");
+  var av = localStorage.getItem("cc_default_avatar");
+  if (fi.files && fi.files[0]) {
+    av = await fUrl(fi.files[0]);
+    localStorage.setItem("cc_default_avatar", av);
+  }
+  if (!av) { document.getElementById("le").textContent = "请上传头像"; return; }
+  currentUser = { nick: n, avatar: av };
+  localStorage.setItem("cc_user", JSON.stringify(currentUser));
+  document.getElementById("lb").style.display = "none";
+  renderApp();
+};
 function renderApp() {
-    document.getElementById("lb").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    document.getElementById("ua").src = currentUser.avatar;
-    document.getElementById("un").textContent = currentUser.nick;
-    loadPosts();
+  document.getElementById("lb").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("ua").src = currentUser.avatar;
+  document.getElementById("un").textContent = currentUser.nick;
+  loadPosts();
 }
 function loadPosts() {
-    var d = getData();
-    var c = document.getElementById("pc");
-    if (!d.posts || d.posts.length === 0) {
-        c.innerHTML = '<div class="empty">暂无帖子</div>';
-        return;
-    }
-    c.innerHTML = "";
-    d.posts.sort(function(a, b) { return b.id - a.id; }).forEach(function(p) {
-        c.appendChild(renderPost(p));
-    });
+  var d = getData();
+  var c = document.getElementById("pc");
+  if (!d.posts || d.posts.length === 0) {
+    c.innerHTML = '<div class="empty">暂无帖子</div>';
+    return;
+  }
+  c.innerHTML = "";
+  d.posts.sort(function(a, b) { return b.id - a.id; }).forEach(function(p) {
+    c.appendChild(renderPost(p));
+  });
 }
 function renderPost(p) {
-    var d = document.createElement("div");
-    d.className = "post";
-    var isAuth = currentUser && currentUser.nick === p.author && currentUser.avatar === p.avatar;
-    var imgs = "";
-    if (p.images && p.images.length > 0) {
-        imgs = '<div class="post-images">' + p.images.map(function(s) {
-            return '<img src="' + s + '" onclick="openLB(\'' + s + '\')">';
-        }).join("") + '</div>';
-    }
-    var reps = "";
-    if (p.replies && p.replies.length > 0) {
-        reps = '<div class="reply-section">' + p.replies.map(function(r) {
-            var ri = "";
-            if (r.image) ri = '<div class="reply-image"><img src="' + r.image + '" onclick="openLB(\'' + r.image + '\')"></div>';
-            return '<div class="reply"><div class="reply-header"><img src="' + r.avatar + '"><span class="reply-author">' + escHtml(r.author) + '</span><span class="reply-time">' + escHtml(r.time) + '</span></div><div class="reply-text">' + escHtml(r.text) + '</div>' + ri + '</div>';
-        }).join("") + '</div>';
-    }
-    var del = isAuth ? '<span class="delete-btn" onclick="delPost(' + p.id + ')">删除</span>' : "";
-    d.innerHTML = '<div class="post-header"><img src="' + p.avatar + '"><div><div class="post-author">' + escHtml(p.author) + '</div><div class="post-time">' + escHtml(p.time) + '</div></div>' + del + '</div><div class="post-text">' + escHtml(p.text) + '</div>' + imgs + '<div class="post-actions"><span onclick="showReply(' + p.id + ')">回复</span></div>' + reps + '<div class="reply-form" id="rf' + p.id + '" style="display:none"><input type="text" placeholder="输入回复..." id="ri' + p.id + '"><input type="file" accept="image/*" id="rfi' + p.id + '" style="display:none"><label for="rfi' + p.id + '" style="padding:6px 10px;background:#eee;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">图片</label><button onclick="submitReply(' + p.id + ')">发送</button></div>';
-    return d;
+  var d = document.createElement("div");
+  d.className = "post";
+  var isAuth = currentUser && currentUser.nick === p.author && currentUser.avatar === p.avatar;
+  var imgs = "";
+  if (p.images && p.images.length > 0) {
+    imgs = '<div class="post-images">' + p.images.map(function(s) {
+      return '<img src="' + s + '" onclick="openLB(\'' + s + '\')">';
+    }).join("") + '</div>';
+  }
+  var reps = "";
+  if (p.replies && p.replies.length > 0) {
+    reps = '<div class="reply-section">' + p.replies.map(function(r) {
+      var ri = "";
+      if (r.image) ri = '<div class="reply-image"><img src="' + r.image + '" onclick="openLB(\'' + r.image + '\')"></div>';
+      return '<div class="reply"><div class="reply-header"><img src="' + r.avatar + '"><span class="reply-author">' + escHtml(r.author) + '</span><span class="reply-time">' + escHtml(r.time) + '</span></div><div class="reply-text">' + escHtml(r.text) + '</div>' + ri + '</div>';
+    }).join("") + '</div>';
+  }
+  var del = isAuth ? '<span class="delete-btn" onclick="delPost(' + p.id + ')">删除</span>' : "";
+  d.innerHTML = '<div class="post-header"><img src="' + p.avatar + '"><div><div class="post-author">' + escHtml(p.author) + '</div><div class="post-time">' + escHtml(p.time) + '</div></div>' + del + '</div><div class="post-text">' + escHtml(p.text) + '</div>' + imgs + '<div class="post-actions"><span onclick="showReply(' + p.id + ')">回复</span></div>' + reps + '<div class="reply-form" id="rf' + p.id + '" style="display:none"><input type="text" placeholder="输入回复..." id="ri' + p.id + '"><input type="file" accept="image/*" id="rfi' + p.id + '" style="display:none"><label for="rfi' + p.id + '" style="padding:6px 10px;background:#eee;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">图片</label><button onclick="submitReply(' + p.id + ')">发送</button></div>';
+  return d;
 }
 function submitPost() {
-    var t = document.getElementById("pt").value.trim();
-    if (!t) { document.getElementById("pe").textContent = "请输入内容"; return; }
-    var imgs = uploadImages.slice(0, 5);
-    var d = getData();
-    d.posts.push({ id: d.nextId++, author: currentUser.nick, avatar: currentUser.avatar, time: new Date().toLocaleString("zh-CN", { hour12: false }), text: t, images: imgs, replies: [] });
-    saveData(d);
-    document.getElementById("pt").value = "";
-    uploadImages = [];
-    document.getElementById("pip").innerHTML = "";
-    loadPosts();
+  var t = document.getElementById("pt").value.trim();
+  if (!t) { document.getElementById("pe").textContent = "请输入内容"; return; }
+  var imgs = uploadImages.slice(0, 5);
+  var d = getData();
+  d.posts.push({ id: d.nextId++, author: currentUser.nick, avatar: currentUser.avatar, time: new Date().toLocaleString("zh-CN", { hour12: false }), text: t, images: imgs, replies: [] });
+  saveData(d);
+  document.getElementById("pt").value = "";
+  uploadImages = [];
+  document.getElementById("pip").innerHTML = "";
+  loadPosts();
 }
 function showReply(id) {
-    var f = document.getElementById("rf" + id);
-    if (f) f.style.display = f.style.display === "none" ? "flex" : "none";
+  var f = document.getElementById("rf" + id);
+  if (f) f.style.display = f.style.display === "none" ? "flex" : "none";
 }
 async function submitReply(pid) {
-    var i = document.getElementById("ri" + pid);
-    var fi = document.getElementById("rfi" + pid);
-    var t = i.value.trim();
-    if (!t) return;
-    var img = null;
-    if (fi.files && fi.files[0]) img = await fUrl(fi.files[0]);
-    var d = getData();
-    var p = d.posts.find(function(x) { return x.id === pid; });
-    if (p) {
-        if (!p.replies) p.replies = [];
-        p.replies.push({ author: currentUser.nick, avatar: currentUser.avatar, time: new Date().toLocaleString("zh-CN", { hour12: false }), text: t, image: img });
-        saveData(d);
-    }
-    i.value = "";
-    fi.value = "";
-    loadPosts();
+  var i = document.getElementById("ri" + pid);
+  var fi = document.getElementById("rfi" + pid);
+  var t = i.value.trim();
+  if (!t) return;
+  var img = null;
+  if (fi.files && fi.files[0]) img = await fUrl(fi.files[0]);
+  var d = getData();
+  var p = d.posts.find(function(x) { return x.id === pid; });
+  if (p) {
+    if (!p.replies) p.replies = [];
+    p.replies.push({ author: currentUser.nick, avatar: currentUser.avatar, time: new Date().toLocaleString("zh-CN", { hour12: false }), text: t, image: img });
+    saveData(d);
+  }
+  i.value = "";
+  fi.value = "";
+  loadPosts();
 }
 function delPost(id) {
-    if (!confirm("确定删除？")) return;
-    var d = getData();
-    d.posts = d.posts.filter(function(p) { return p.id !== id; });
-    saveData(d);
-    loadPosts();
+  if (!confirm("确定删除？")) return;
+  var d = getData();
+  d.posts = d.posts.filter(function(p) { return p.id !== id; });
+  saveData(d);
+  loadPosts();
 }
 function handleUpload(e) {
-    var files = e.target.files;
-    var p = document.getElementById("pip");
-    for (var k = 0; k < files.length; k++) {
-        if (uploadImages.length >= 5) break;
-        var r = new FileReader();
-        (function(idx) {
-            r.onload = function(ev) {
-                uploadImages.push(ev.target.result);
-                var w = document.createElement("div");
-                w.className = "img-wrapper";
-                w.innerHTML = '<img src="' + ev.target.result + '"><span class="remove" onclick="removeImg(' + idx + ')">x</span>';
-                p.appendChild(w);
-            };
-        })(uploadImages.length);
-        r.readAsDataURL(files[k]);
-    }
-    e.target.value = "";
-}
-function removeImg(idx) {
-    uploadImages.splice(idx, 1);
-    var p = document.getElementById("pip");
-    p.innerHTML = "";
-    uploadImages.forEach(function(s, i) {
+  var files = e.target.files;
+  var p = document.getElementById("pip");
+  for (var k = 0; k < files.length; k++) {
+    if (uploadImages.length >= 5) break;
+    var r = new FileReader();
+    (function(idx) {
+      r.onload = function(ev) {
+        uploadImages.push(ev.target.result);
         var w = document.createElement("div");
         w.className = "img-wrapper";
-        w.innerHTML = '<img src="' + s + '"><span class="remove" onclick="removeImg(' + i + ')">x</span>';
+        w.innerHTML = '<img src="' + ev.target.result + '"><span class="remove" onclick="removeImg(' + idx + ')">x</span>';
         p.appendChild(w);
-    });
+      };
+    })(uploadImages.length);
+    r.readAsDataURL(files[k]);
+  }
+  e.target.value = "";
+}
+function removeImg(idx) {
+  uploadImages.splice(idx, 1);
+  var p = document.getElementById("pip");
+  p.innerHTML = "";
+  uploadImages.forEach(function(s, i) {
+    var w = document.createElement("div");
+    w.className = "img-wrapper";
+    w.innerHTML = '<img src="' + s + '"><span class="remove" onclick="removeImg(' + i + ')">x</span>';
+    p.appendChild(w);
+  });
 }
 function openLB(src) {
-    var l = document.createElement("div");
-    l.className = "lightbox";
-    l.onclick = function() { l.remove(); };
-    l.innerHTML = '<img src="' + src + '">';
-    document.body.appendChild(l);
+  var l = document.createElement("div");
+  l.className = "lightbox";
+  l.onclick = function() { l.remove(); };
+  l.innerHTML = '<img src="' + src + '">';
+  document.body.appendChild(l);
 }
 if (window.BroadcastChannel) {
-    new BroadcastChannel("fc").onmessage = function(e) {
-        if (e.data && e.data.type === "u" && currentUser) loadPosts();
-    };
+  new BroadcastChannel("cc").onmessage = function(e) {
+    if (e.data && e.data.type === "u" && currentUser) loadPosts();
+  };
 }
-// Wait for DOM then load avatars
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadAvatars);
-} else {
-    loadAvatars();
+// Pre-fill nickname if saved
+var saved = localStorage.getItem("cc_user");
+if (saved) {
+  var u = JSON.parse(saved);
+  var ni = document.getElementById("ni");
+  if (ni) ni.value = u.nick;
 }
+showPage();
 </script>
 </body>
 </html>
