@@ -106,7 +106,15 @@ function syncDown(){
   var r=ghApi("GET");
   if(r&&r.content){
     try{
-      var dec=atob(r.content.replace(/\n/g,""));
+      // Proper UTF-8 base64 decode
+      var bytes=atob(r.content.replace(/\n/g,"")).split('').map(function(c){return c.charCodeAt(0)});
+      var dec='',i=0;
+      while(i<bytes.length){
+        var b=bytes[i++];
+        if(b<128)dec+=String.fromCharCode(b);
+        else if(b<224)dec+=String.fromCharCode((b&31)<<6|bytes[i++]&63);
+        else dec+=String.fromCharCode((b&15)<<12|(bytes[i++]&63)<<6|bytes[i++]&63);
+      }
       var data=JSON.parse(dec);
       var local=gd();
       if(data.posts&&data.posts.length>0){
@@ -128,7 +136,15 @@ function syncDown(){
 function syncUp(sha){
   var data=gd();
   var jsonStr=JSON.stringify(data);
-  var enc=btoa(unescape(encodeURIComponent(jsonStr)));
+  // UTF-8 safe base64: convert string to UTF-8 bytes first
+  var utf8=[],i;
+  for(i=0;i<jsonStr.length;i++){
+    var c=jsonStr.charCodeAt(i);
+    if(c<128)utf8.push(c);
+    else if(c<2048)utf8.push(192|c>>6,128|c&63);
+    else utf8.push(224|c>>12,128|c>>6&63,128|c&63);
+  }
+  var enc=btoa(String.fromCharCode.apply(null,utf8));
   var body={message:"sync",content:enc,branch:GH_BRANCH};
   if(sha)body.sha=sha;
   ghApi("PUT",body);
@@ -142,7 +158,14 @@ function doSync(){
     // If no remote data exists or remote is empty, write local data up
     if(!r.sha||r.empty){
       var jsonStr=JSON.stringify(data);
-      var enc=btoa(unescape(encodeURIComponent(jsonStr)));
+      var utf8=[],i;
+      for(i=0;i<jsonStr.length;i++){
+        var c=jsonStr.charCodeAt(i);
+        if(c<128)utf8.push(c);
+        else if(c<2048)utf8.push(192|c>>6,128|c&63);
+        else utf8.push(224|c>>12,128|c>>6&63,128|c&63);
+      }
+      var enc=btoa(String.fromCharCode.apply(null,utf8));
       var body={message:"sync",content:enc,branch:GH_BRANCH};
       if(r.sha)body.sha=r.sha;
       var res=ghApi("PUT",body);
